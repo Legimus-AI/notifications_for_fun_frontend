@@ -19,7 +19,7 @@ export const useWebhookStore = defineStore("webhooks", () => {
     error.value = null;
     try {
       const response = await api.getWebhooks();
-      webhooks.value = response.data || [];
+      webhooks.value = response.payload || [];
     } catch (e: any) {
       error.value = e.response?.data?.message || "Failed to fetch webhooks";
     } finally {
@@ -32,7 +32,7 @@ export const useWebhookStore = defineStore("webhooks", () => {
     error.value = null;
     try {
       const response = await api.setWebhook(webhookData);
-      if (response.success) {
+      if (response.ok) {
         await fetchWebhooks(); // Refresh the list
       }
     } catch (e: any) {

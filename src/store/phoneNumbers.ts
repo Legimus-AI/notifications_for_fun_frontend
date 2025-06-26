@@ -22,10 +22,10 @@ interface PhoneNumbersState {
 
 // Helper to map API response to frontend types
 const mapPhoneNumber = (apiPhoneNumber: any): PhoneNumber => ({
-  phoneNumberId: apiPhoneNumber.phone_number_id,
-  phoneNumber: apiPhoneNumber.phone_number,
-  displayName: apiPhoneNumber.display_name,
-  sessionId: apiPhoneNumber.session_id,
+  phone_number_id: apiPhoneNumber.phone_number_id,
+  phone_number: apiPhoneNumber.phone_number,
+  display_name: apiPhoneNumber.display_name,
+  session_id: apiPhoneNumber.session_id,
 });
 
 const mapMessage = (apiMessage: any): Message => ({
@@ -52,7 +52,7 @@ export const usePhoneNumbersStore = defineStore("phoneNumbers", {
       this.phoneNumbersError = null;
       try {
         const response = await api.getConnectedPhoneNumbers();
-        this.phoneNumbers = response.data.phoneNumbers.map(mapPhoneNumber);
+        this.phoneNumbers = response.payload || [];
       } catch (e: any) {
         this.phoneNumbersError =
           e.response?.data?.message || "Failed to fetch phone numbers.";
@@ -66,7 +66,7 @@ export const usePhoneNumbersStore = defineStore("phoneNumbers", {
       this.phoneNumbersError = null;
       try {
         const response = await api.getConnectedPhoneNumbers();
-        this.phoneNumbers = response.data || [];
+        this.phoneNumbers = response.payload || [];
       } catch (e: any) {
         this.phoneNumbersError =
           e.response?.data?.message ||

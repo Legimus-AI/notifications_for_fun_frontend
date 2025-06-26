@@ -77,7 +77,33 @@
 
     <!-- Details Section -->
     <div v-if="!channel.connectionError" class="channel-card__details">
-      <div v-if="channel.phoneNumber" class="detail-item">
+      <!-- Connected Phone Number -->
+      <div
+        v-if="connectedPhoneNumber"
+        class="detail-item detail-item--connected"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="detail-icon detail-icon--connected"
+        >
+          <path
+            d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"
+          />
+        </svg>
+        <span class="phone-number">+{{ connectedPhoneNumber }}</span>
+        <span v-if="channel.status === 'active'" class="connected-badge">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+          </svg>
+          Connected
+        </span>
+      </div>
+
+      <!-- Connection Time -->
+      <div v-if="connectedAt" class="detail-item">
         <svg
           width="16"
           height="16"
@@ -86,13 +112,14 @@
           class="detail-icon"
         >
           <path
-            d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"
+            d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"
           />
         </svg>
-        <span>{{ channel.phoneNumber }}</span>
+        <span>Connected {{ formatConnectedTime }}</span>
       </div>
 
-      <div class="detail-item">
+      <!-- Last Activity (fallback if no connection time) -->
+      <div v-else-if="formatLastActivity" class="detail-item">
         <svg
           width="16"
           height="16"
@@ -105,6 +132,29 @@
           />
         </svg>
         <span>{{ formatLastActivity }}</span>
+      </div>
+
+      <!-- Webhooks Count (if any) -->
+      <div
+        v-if="channel.webhooks && channel.webhooks.length > 0"
+        class="detail-item"
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="detail-icon"
+        >
+          <path
+            d="M10.59,13.41C11,13.8 11,14.4 10.59,14.81C10.2,15.2 9.6,15.2 9.19,14.81L7.77,13.39L6.34,14.81C5.93,15.22 5.33,15.22 4.92,14.81C4.51,14.4 4.51,13.8 4.92,13.39L6.34,12L4.92,10.59C4.51,10.2 4.51,9.6 4.92,9.19C5.33,8.78 5.93,8.78 6.34,9.19L7.77,10.61L9.19,9.19C9.6,8.78 10.2,8.78 10.59,9.19C11,9.6 11,10.2 10.59,10.59L9.17,12L10.59,13.41M19.08,9.19C19.49,8.78 20.09,8.78 20.5,9.19C20.91,9.6 20.91,10.2 20.5,10.59L19.08,12L20.5,13.41C20.91,13.8 20.91,14.4 20.5,14.81C20.09,15.22 19.49,15.22 19.08,14.81L17.66,13.39L16.23,14.81C15.82,15.22 15.22,15.22 14.81,14.81C14.4,14.4 14.4,13.8 14.81,13.39L16.23,12L14.81,10.59C14.4,10.2 14.4,9.6 14.81,9.19C15.22,8.78 15.82,8.78 16.23,9.19L17.66,10.61L19.08,9.19M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5M12,13C15.31,13 18,15.69 18,19V21H6V19C6,15.69 8.69,13 12,13Z"
+          />
+        </svg>
+        <span
+          >{{ channel.webhooks.length }} webhook{{
+            channel.webhooks.length !== 1 ? "s" : ""
+          }}</span
+        >
       </div>
     </div>
 
@@ -148,7 +198,7 @@
         </button>
 
         <button
-          v-if="channel.phoneNumber"
+          v-if="connectedPhoneNumber"
           class="menu-item menu-item--secondary"
           @click="requestPairingCode"
         >
@@ -259,8 +309,28 @@ const statusLabel = computed(() => {
   }
 });
 
+// Get connected phone number from config or fallback to legacy field
+const connectedPhoneNumber = computed(() => {
+  return props.channel.config?.phoneNumber || props.channel.phoneNumber;
+});
+
+// Get connected time from config
+const connectedAt = computed(() => {
+  return props.channel.config?.connectedAt;
+});
+
+// Format connected time
+const formatConnectedTime = computed(() => {
+  if (!connectedAt.value) return "";
+  const date = new Date(connectedAt.value);
+  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
+    Math.round((date.getTime() - Date.now()) / (1000 * 60)),
+    "minute"
+  );
+});
+
 const formatLastActivity = computed(() => {
-  if (!props.channel.lastActivity) return "No activity";
+  if (!props.channel.lastActivity) return "";
   const date = new Date(props.channel.lastActivity);
   return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
     Math.round((date.getTime() - Date.now()) / (1000 * 60)),
@@ -282,7 +352,7 @@ const connect = async () => {
     store.subscribeToChannel(props.channel.channelId);
     await store.connectChannel(
       props.channel.channelId,
-      props.channel.phoneNumber
+      connectedPhoneNumber.value
     );
     success("Channel connection initiated", "Success");
   } catch (err: any) {
@@ -324,10 +394,10 @@ const cancelDeleteChannel = () => {
 
 const requestPairingCode = async () => {
   try {
-    if (props.channel.phoneNumber) {
+    if (connectedPhoneNumber.value) {
       await store.requestPairingCode(
         props.channel.channelId,
-        props.channel.phoneNumber
+        connectedPhoneNumber.value
       );
       success("Pairing code requested successfully", "Success");
     } else {
@@ -549,19 +619,55 @@ onUnmounted(() => {
 .channel-card__details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #6b7280;
+  gap: var(--spacing-sm);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.detail-item--connected {
+  background: var(--color-success-subtle);
+  border: 1px solid var(--color-success-light);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
 }
 
 .detail-icon {
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.detail-icon--connected {
+  color: var(--color-success);
+}
+
+.phone-number {
+  font-family: var(--font-family-mono);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: 0.025em;
+}
+
+.connected-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--color-success);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-pill);
+  margin-left: auto;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Error State */

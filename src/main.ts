@@ -27,7 +27,26 @@ import {
   faArrowsToCircle,
   faShareNodes,
   faCodeBranch,
+  faAddressBook,
+  faSearch,
+  faTrash,
+  faHistory,
+  faTimes,
+  faExclamationTriangle,
+  faUsers,
+  faUserCircle,
+  faCamera,
+  faCheckCircle,
+  faTimesCircle,
+  faQuoteLeft,
+  faClock,
+  faSync,
+  faCopy,
+  faCircle,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
+import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { faCircle as farCircle } from "@fortawesome/free-regular-svg-icons";
 
 // Add icons to library
 library.add(
@@ -46,7 +65,26 @@ library.add(
   faRoute,
   faArrowsToCircle,
   faShareNodes,
-  faCodeBranch
+  faCodeBranch,
+  faAddressBook,
+  faSearch,
+  faTrash,
+  faHistory,
+  faTimes,
+  faExclamationTriangle,
+  faUsers,
+  faUserCircle,
+  faCamera,
+  faCheckCircle,
+  faTimesCircle,
+  faQuoteLeft,
+  faClock,
+  faSync,
+  faCopy,
+  faCircle,
+  faSpinner,
+  faWhatsapp,
+  farCircle
 );
 
 const app = createApp(App);

@@ -23,6 +23,11 @@ import type {
   SendMediaRequest,
   PairingCodeRequest,
 } from "@/types/sessions";
+import type {
+  ContactCheckResponse,
+  ContactStatus,
+  ContactProfilePicture,
+} from "@/types/contacts";
 
 // Generic API response type
 interface ApiResponse<T> {
@@ -180,6 +185,32 @@ export default {
     apiClient.delete(`/api_keys/${id}`),
   toggleApiKey: (id: string, isActive: boolean): Promise<ApiResponse<void>> =>
     apiClient.put(`/api_keys/${id}`, { isActive }),
+
+  // Contact Management
+  checkContact(
+    channelId: string,
+    jid: string
+  ): Promise<ApiResponse<ContactCheckResponse>> {
+    return apiClient.get(
+      `/whatsapp/channels/${channelId}/contacts/${jid}/check`
+    );
+  },
+  getContactStatus(
+    channelId: string,
+    jid: string
+  ): Promise<ApiResponse<ContactStatus>> {
+    return apiClient.get(
+      `/whatsapp/channels/${channelId}/contacts/${jid}/status`
+    );
+  },
+  getContactProfilePicture(
+    channelId: string,
+    jid: string
+  ): Promise<ApiResponse<ContactProfilePicture>> {
+    return apiClient.get(
+      `/whatsapp/channels/${channelId}/contacts/${jid}/photo`
+    );
+  },
 
   // General API Endpoints
   getApiStatus() {

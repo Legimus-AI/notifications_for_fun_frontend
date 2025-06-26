@@ -1,23 +1,16 @@
 <template>
   <div class="webhooks-container">
-    <!-- Modern Header Section -->
-    <header class="modern-header">
-      <div class="header-backdrop"></div>
-      <div class="header-content">
-        <div class="header-main">
-          <div class="header-icon">
-            <i class="bi bi-webhook"></i>
-          </div>
-          <div class="header-text">
-            <h1 class="header-title">Webhook Management</h1>
-            <p class="header-subtitle">
-              Configure and monitor webhook endpoints for real-time
-              notifications
-            </p>
-          </div>
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="page-header__content">
+        <div class="page-title-section">
+          <h1 class="page-title">Webhook Management</h1>
+          <p class="page-subtitle">
+            Configure and monitor webhook endpoints for real-time notifications
+          </p>
         </div>
         <div class="header-stats">
-          <div class="stat-card primary">
+          <div class="stat-card">
             <div class="stat-icon">
               <i class="bi bi-broadcast"></i>
             </div>
@@ -26,7 +19,7 @@
               <div class="stat-label">Active Channels</div>
             </div>
           </div>
-          <div class="stat-card secondary">
+          <div class="stat-card">
             <div class="stat-icon">
               <i class="bi bi-link-45deg"></i>
             </div>
@@ -42,45 +35,46 @@
     <!-- Content Section -->
     <div class="content-wrapper">
       <!-- Loading State -->
-      <div v-if="channelsLoading" class="loading-state">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
+      <div v-if="channelsLoading" class="state-container">
+        <div class="state-card loading">
+          <div class="state-icon">
+            <div class="loading-spinner">
+              <div class="spinner"></div>
+            </div>
+          </div>
+          <h3 class="state-title">Loading Channels</h3>
+          <p class="state-text">Please wait while we fetch your channels...</p>
         </div>
-        <h3 class="loading-title">Loading Channels</h3>
-        <p class="loading-text">Please wait while we fetch your channels...</p>
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="error-state">
-        <div class="error-icon">
-          <i class="bi bi-exclamation-triangle"></i>
+      <div v-else-if="error" class="state-container">
+        <div class="state-card error">
+          <div class="state-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <h3 class="state-title">Something went wrong</h3>
+          <p class="state-text">{{ error }}</p>
+          <button class="modern-btn primary" @click="initialize">
+            <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+          </button>
         </div>
-        <h3 class="error-title">Something went wrong</h3>
-        <p class="error-text">{{ error }}</p>
-        <button class="retry-btn" @click="initialize">
-          <i class="bi bi-arrow-clockwise me-2"></i>Try Again
-        </button>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="activeChannels.length === 0" class="empty-state">
-        <div class="empty-illustration">
-          <div class="empty-icon">
+      <div v-else-if="activeChannels.length === 0" class="state-container">
+        <div class="state-card empty">
+          <div class="state-icon">
             <i class="bi bi-chat-dots"></i>
           </div>
-          <div class="empty-circles">
-            <div class="circle circle-1"></div>
-            <div class="circle circle-2"></div>
-            <div class="circle circle-3"></div>
-          </div>
+          <h3 class="state-title">No Active Channels</h3>
+          <p class="state-text">
+            Create and activate WhatsApp channels to start configuring webhooks
+          </p>
+          <router-link to="/" class="modern-btn success">
+            <i class="bi bi-plus-circle me-2"></i>Create First Channel
+          </router-link>
         </div>
-        <h3 class="empty-title">No Active Channels</h3>
-        <p class="empty-description">
-          Create and activate WhatsApp channels to start configuring webhooks
-        </p>
-        <router-link to="/" class="create-channel-btn">
-          <i class="bi bi-plus-circle me-2"></i>Create First Channel
-        </router-link>
       </div>
 
       <!-- Channels Grid -->
@@ -88,10 +82,10 @@
         <div
           v-for="channel in activeChannels"
           :key="channel.channelId"
-          class="channel-card"
+          class="modern-card channel-card"
         >
           <!-- Channel Header -->
-          <div class="channel-header">
+          <div class="card-header">
             <div class="channel-avatar">
               <i class="bi bi-whatsapp"></i>
             </div>
@@ -99,7 +93,7 @@
               <div class="channel-title">
                 <h3 class="channel-name">{{ channel.name }}</h3>
                 <span
-                  class="channel-status"
+                  class="status-badge"
                   :class="getStatusClass(channel.status)"
                 >
                   <i class="status-dot"></i>
@@ -118,7 +112,7 @@
             </div>
             <div class="channel-actions">
               <button
-                class="action-btn add-webhook"
+                class="modern-btn primary sm"
                 @click="showAddWebhookForm(channel.channelId)"
                 :class="{ active: activeAddForms[channel.channelId] }"
               >
@@ -131,7 +125,7 @@
           <!-- Add Webhook Form -->
           <BCollapse
             v-model="activeAddForms[channel.channelId]"
-            class="webhook-form-section"
+            class="webhook-form-collapse"
           >
             <div class="webhook-form">
               <div class="form-header">
@@ -152,7 +146,10 @@
                   <label class="form-label">
                     <i class="bi bi-link me-2"></i>Webhook URL
                   </label>
-                  <div class="input-wrapper">
+                  <div class="input-group">
+                    <div class="input-icon">
+                      <i class="bi bi-globe"></i>
+                    </div>
                     <BFormInput
                       :model-value="
                         newWebhookForms[channel.channelId]?.url || ''
@@ -163,9 +160,6 @@
                       required
                       class="modern-input"
                     />
-                    <div class="input-icon">
-                      <i class="bi bi-globe"></i>
-                    </div>
                   </div>
                 </div>
 
@@ -202,14 +196,14 @@
                 <div class="form-actions">
                   <button
                     type="button"
-                    class="btn-secondary"
+                    class="modern-btn secondary"
                     @click="cancelAddWebhook(channel.channelId)"
                   >
                     <i class="bi bi-x me-2"></i>Cancel
                   </button>
                   <button
                     type="submit"
-                    class="btn-primary"
+                    class="modern-btn primary"
                     :disabled="channelsLoading"
                   >
                     <span v-if="channelsLoading" class="btn-spinner">
@@ -238,12 +232,12 @@
             <!-- No Webhooks -->
             <div
               v-if="!channel.webhooks || channel.webhooks.length === 0"
-              class="no-webhooks"
+              class="empty-webhooks"
             >
-              <div class="no-webhooks-illustration">
+              <div class="empty-icon">
                 <i class="bi bi-link-45deg"></i>
               </div>
-              <p class="no-webhooks-text">No webhooks configured yet</p>
+              <p class="empty-text">No webhooks configured yet</p>
             </div>
 
             <!-- Webhooks List -->
@@ -305,10 +299,10 @@
                     />
                   </div>
                   <button
-                    class="delete-btn"
+                    class="action-btn danger"
                     @click="
                       webhook._id &&
-                        deleteWebhook(channel.channelId, webhook._id)
+                        confirmDeleteWebhook(channel.channelId, webhook._id)
                     "
                     title="Delete Webhook"
                   >
@@ -321,6 +315,20 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast Container -->
+    <ToastContainer />
+
+    <!-- Confirmation Modal -->
+    <ConfirmationModal
+      :show="showConfirmModal"
+      :title="confirmModalData.title"
+      :message="confirmModalData.message"
+      :variant="confirmModalData.variant"
+      :confirm-text="confirmModalData.confirmText"
+      @confirm="handleConfirmAction"
+      @cancel="cancelConfirmAction"
+    />
   </div>
 </template>
 
@@ -330,9 +338,13 @@ import { useChannelStore } from "@/store/sessions";
 import { storeToRefs } from "pinia";
 import type { ChannelWebhook } from "@/types/sessions";
 import { BCollapse, BFormInput, BFormCheckbox } from "bootstrap-vue-3";
+import { useToast } from "@/composables/useToast";
+import ToastContainer from "@/components/common/ToastContainer.vue";
+import ConfirmationModal from "@/components/common/ConfirmationModal.vue";
 
 // Stores
 const channelStore = useChannelStore();
+const { success, error: showErrorToast, warning } = useToast();
 
 // Refs from stores
 const {
@@ -346,6 +358,16 @@ const activeAddForms = ref<Record<string, boolean>>({});
 const newWebhookForms = ref<Record<string, { url: string; events: string[] }>>(
   {}
 );
+
+// Confirmation modal state
+const showConfirmModal = ref(false);
+const confirmModalData = ref({
+  title: "",
+  message: "",
+  variant: "danger" as "danger" | "warning" | "success" | "primary",
+  confirmText: "Delete",
+});
+const pendingAction = ref<(() => Promise<void>) | null>(null);
 
 // Available events based on the MongoDB schema
 const availableEvents = [
@@ -371,8 +393,12 @@ const totalWebhooks = computed(() => {
 });
 
 // Methods
-const initialize = () => {
-  channelStore.fetchChannels();
+const initialize = async () => {
+  try {
+    await channelStore.fetchChannels();
+  } catch (e) {
+    showErrorToast("Failed to load channels. Please try again.");
+  }
 };
 
 const showAddWebhookForm = (channelId: string) => {
@@ -417,7 +443,9 @@ const handleAddWebhook = async (channelId: string) => {
   const formData = newWebhookForms.value[channelId];
 
   if (!formData || !formData.url || formData.events.length === 0) {
-    alert("Please fill in all required fields and select at least one event.");
+    showErrorToast(
+      "Please fill in all required fields and select at least one event."
+    );
     return;
   }
 
@@ -427,10 +455,12 @@ const handleAddWebhook = async (channelId: string) => {
       events: formData.events,
     });
 
+    success("Webhook added successfully!");
     // Reset form and close
     cancelAddWebhook(channelId);
   } catch (e) {
     console.error("Failed to add webhook:", e);
+    showErrorToast("Failed to add webhook. Please try again.");
   }
 };
 
@@ -443,41 +473,72 @@ const toggleWebhook = async (
 
   try {
     await channelStore.toggleChannelWebhook(channelId, webhookId, isActive);
+    success(`Webhook ${isActive ? "activated" : "deactivated"} successfully!`);
   } catch (e) {
     console.error("Failed to toggle webhook:", e);
+    showErrorToast("Failed to update webhook status. Please try again.");
   }
 };
 
-const deleteWebhook = async (
+const confirmDeleteWebhook = (
   channelId: string,
   webhookId: string | undefined
 ) => {
   if (!webhookId) return;
 
-  if (
-    confirm(
-      "Are you sure you want to delete this webhook? This action cannot be undone."
-    )
-  ) {
+  confirmModalData.value = {
+    title: "Delete Webhook",
+    message:
+      "Are you sure you want to delete this webhook? This action cannot be undone.",
+    variant: "danger",
+    confirmText: "Delete Webhook",
+  };
+
+  pendingAction.value = async () => {
+    await deleteWebhook(channelId, webhookId);
+  };
+
+  showConfirmModal.value = true;
+};
+
+const deleteWebhook = async (channelId: string, webhookId: string) => {
+  try {
+    await channelStore.deleteChannelWebhook(channelId, webhookId);
+    success("Webhook deleted successfully!");
+  } catch (e) {
+    console.error("Failed to delete webhook:", e);
+    showErrorToast("Failed to delete webhook. Please try again.");
+  }
+};
+
+const handleConfirmAction = async () => {
+  if (pendingAction.value) {
     try {
-      await channelStore.deleteChannelWebhook(channelId, webhookId);
+      await pendingAction.value();
     } catch (e) {
-      console.error("Failed to delete webhook:", e);
+      console.error("Action failed:", e);
     }
   }
+  showConfirmModal.value = false;
+  pendingAction.value = null;
+};
+
+const cancelConfirmAction = () => {
+  showConfirmModal.value = false;
+  pendingAction.value = null;
 };
 
 const getStatusClass = (status: string) => {
   switch (status) {
     case "active":
     case "open":
-      return "status-active";
+      return "success";
     case "connecting":
-      return "status-connecting";
+      return "warning";
     case "error":
-      return "status-error";
+      return "danger";
     default:
-      return "status-inactive";
+      return "secondary";
   }
 };
 
@@ -524,103 +585,81 @@ onMounted(initialize);
 /* Modern Container */
 .webhooks-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1f2937;
 }
 
-/* Modern Header */
-.modern-header {
-  position: relative;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  padding: 3rem 2rem;
-  margin-bottom: 2rem;
-  overflow: hidden;
-}
-
-.header-backdrop {
-  position: absolute;
+/* Page Header */
+.page-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255,255,255,0.1)'%3e%3cpath d='m0 2 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2L20 0v2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2L0 4z'/%3e%3c/svg%3e");
-  opacity: 0.6;
+  z-index: 10;
+  backdrop-filter: blur(8px);
 }
 
-.header-content {
-  position: relative;
+.page-header__content {
   max-width: 1200px;
   margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-lg);
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  gap: 2rem;
-  color: white;
+  gap: var(--spacing-lg);
 }
 
-.header-main {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+.page-title-section {
+  flex: 1;
+  min-width: 0;
 }
 
-.header-icon {
-  width: 64px;
-  height: 64px;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.page-title {
   font-size: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.header-title {
-  font-size: 2.5rem;
   font-weight: 700;
+  color: var(--color-text-primary);
   margin: 0;
   line-height: 1.2;
-  background: linear-gradient(45deg, #ffffff, #f1f5f9);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.025em;
 }
 
-.header-subtitle {
-  font-size: 1.1rem;
-  margin: 0.5rem 0 0 0;
-  opacity: 0.9;
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: var(--spacing-xs) 0 0 0;
   line-height: 1.5;
 }
 
 .header-stats {
   display: flex;
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 1.25rem 1.5rem;
+  padding: var(--spacing-lg);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  min-width: 160px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  gap: var(--spacing-md);
+  min-width: 140px;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .stat-card:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--color-primary);
 }
 
 .stat-icon {
   width: 40px;
   height: 40px;
+  background: var(--color-primary);
+  color: white;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -628,51 +667,91 @@ onMounted(initialize);
   font-size: 1.25rem;
 }
 
-.stat-card.primary .stat-icon {
-  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-}
-
-.stat-card.secondary .stat-icon {
-  background: linear-gradient(45deg, #8b5cf6, #7c3aed);
-}
-
 .stat-value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
+  color: var(--color-text-primary);
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.875rem;
-  opacity: 0.8;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
   margin-top: 0.25rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Content Wrapper */
 .content-wrapper {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem 2rem;
+  padding: 0 2rem 3rem;
 }
 
-/* Loading State */
-.loading-state {
+/* State Container */
+.state-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 500px;
+}
+
+.state-card {
+  background: white;
+  border-radius: 24px;
+  padding: 4rem 3rem;
   text-align: center;
-  padding: 4rem 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f3f4f6;
+  max-width: 600px;
+  width: 100%;
+}
+
+.state-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 2.5rem;
+  font-size: 2.5rem;
+}
+
+.state-card.loading .state-icon {
+  background: linear-gradient(45deg, #eff6ff, #dbeafe);
+  color: #3b82f6;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+}
+
+.state-card.error .state-icon {
+  background: linear-gradient(45deg, #fef2f2, #fee2e2);
+  color: #ef4444;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.15);
+}
+
+.state-card.empty .state-icon {
+  background: linear-gradient(45deg, #f9fafb, #f3f4f6);
+  color: #9ca3af;
+  box-shadow: 0 8px 24px rgba(156, 163, 175, 0.15);
 }
 
 .loading-spinner {
-  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #f3f4f6;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
   border-top: 4px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto;
 }
 
 @keyframes spin {
@@ -684,178 +763,170 @@ onMounted(initialize);
   }
 }
 
-.loading-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.loading-text {
-  color: #6b7280;
-  font-size: 1rem;
-}
-
-/* Error State */
-.error-state {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.error-icon {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(45deg, #ef4444, #dc2626);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  color: white;
-  font-size: 1.5rem;
-}
-
-.error-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.error-text {
-  color: #6b7280;
-  margin-bottom: 2rem;
-}
-
-.retry-btn {
-  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-}
-
-.retry-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-}
-
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-}
-
-.empty-illustration {
-  position: relative;
-  margin-bottom: 2rem;
-}
-
-.empty-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  font-size: 2rem;
-  color: #9ca3af;
-  position: relative;
-  z-index: 2;
-}
-
-.empty-circles {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.circle {
-  position: absolute;
-  border: 2px solid #e5e7eb;
-  border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-.circle-1 {
-  width: 100px;
-  height: 100px;
-  top: -50px;
-  left: -50px;
-}
-
-.circle-2 {
-  width: 140px;
-  height: 140px;
-  top: -70px;
-  left: -70px;
-  animation-delay: 0.5s;
-}
-
-.circle-3 {
-  width: 180px;
-  height: 180px;
-  top: -90px;
-  left: -90px;
-  animation-delay: 1s;
-}
-
-@keyframes pulse {
-  0% {
-    opacity: 1;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(0.8);
-  }
-}
-
-.empty-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #374151;
+.state-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
   margin-bottom: 0.75rem;
 }
 
-.empty-description {
+.state-text {
   color: #6b7280;
-  font-size: 1rem;
+  margin-bottom: 2.5rem;
   line-height: 1.6;
-  max-width: 400px;
-  margin: 0 auto 2rem;
+  font-size: 1.1rem;
 }
 
-.create-channel-btn {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-  padding: 0.875rem 2rem;
-  border-radius: 14px;
-  text-decoration: none;
-  font-weight: 500;
+/* Modern Button Styles */
+.modern-btn {
   display: inline-flex;
   align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+  text-decoration: none;
+  line-height: 1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.create-channel-btn:hover {
+.modern-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.15);
+}
+
+.modern-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modern-btn.primary {
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
   color: white;
-  text-decoration: none;
+}
+
+.modern-btn.primary:hover {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+}
+
+.modern-btn.secondary {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.modern-btn.secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.modern-btn.success {
+  background: linear-gradient(45deg, #10b981, #059669);
+  color: white;
+}
+
+.modern-btn.success:hover {
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+.modern-btn.danger {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+  color: white;
+}
+
+.modern-btn.danger:hover {
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+.modern-btn.sm {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  border-radius: 12px;
+}
+
+/* Modern Card Styles */
+.modern-card {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f3f4f6;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.modern-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-color: #e5e7eb;
+}
+
+/* Status Badge Styles */
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-badge.success {
+  background: linear-gradient(45deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-badge.success .status-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.warning {
+  background: linear-gradient(45deg, #fef3c7, #fde68a);
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.status-badge.warning .status-dot {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
+}
+
+.status-badge.danger {
+  background: linear-gradient(45deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.status-badge.danger .status-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.secondary {
+  background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.status-badge.secondary .status-dot {
+  background: #9ca3af;
 }
 
 /* Channels Grid */
@@ -865,42 +936,30 @@ onMounted(initialize);
 }
 
 .channel-card {
-  background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.channel-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Channel Header */
-.channel-header {
-  padding: 2rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #e2e8f0;
+.card-header {
+  padding: 2.5rem;
+  background: linear-gradient(135deg, white 0%, #fafbfc 100%);
+  border-bottom: 1px solid #f3f4f6;
   display: flex;
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .channel-avatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   background: linear-gradient(45deg, #25d366, #128c7e);
-  border-radius: 16px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(37, 211, 102, 0.3);
 }
 
 .channel-info {
@@ -910,76 +969,23 @@ onMounted(initialize);
 .channel-title {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .channel-name {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
   margin: 0;
 }
 
-.channel-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.375rem 0.75rem;
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.status-active {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-
-.status-active .status-dot {
-  background: #10b981;
-}
-
-.status-connecting {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
-}
-
-.status-connecting .status-dot {
-  background: #f59e0b;
-}
-
-.status-error {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-}
-
-.status-error .status-dot {
-  background: #ef4444;
-}
-
-.status-inactive {
-  background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
-}
-
-.status-inactive .status-dot {
-  background: #9ca3af;
-}
-
 .channel-meta {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .meta-item {
@@ -991,49 +997,25 @@ onMounted(initialize);
   margin-left: auto;
 }
 
-.action-btn {
-  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.action-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-}
-
-.action-btn.active {
-  background: linear-gradient(45deg, #059669, #047857);
-}
-
 /* Webhook Form */
-.webhook-form-section {
-  border-bottom: 1px solid #e2e8f0;
+.webhook-form-collapse {
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .webhook-form {
-  padding: 2rem;
-  background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+  padding: 2.5rem;
+  background: linear-gradient(135deg, #fafbfc 0%, #f8fafc 100%);
 }
 
 .form-header {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .form-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
 }
@@ -1041,74 +1023,81 @@ onMounted(initialize);
 .form-subtitle {
   color: #6b7280;
   margin: 0;
-  font-size: 0.875rem;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 .modern-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .form-label {
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
 }
 
-.input-wrapper {
+.input-group {
   position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1.1rem;
+  z-index: 2;
 }
 
 .modern-input {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
+  padding: 1rem 1.25rem 1rem 3.5rem;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  font-size: 0.875rem;
+  border-radius: 16px;
+  font-size: 0.95rem;
   transition: all 0.3s ease;
   background: white;
+  font-weight: 500;
 }
 
 .modern-input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.input-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  font-size: 1rem;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
 }
 
 .event-option {
   background: white;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 16px;
+  padding: 1.25rem;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .event-option:hover {
   border-color: #3b82f6;
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .event-checkbox {
@@ -1121,69 +1110,31 @@ onMounted(initialize);
 .event-content {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-left: 0.5rem;
+  gap: 1rem;
+  margin-left: 0.75rem;
 }
 
 .event-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #6b7280;
 }
 
 .event-label {
-  font-weight: 500;
+  font-weight: 600;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
 }
 
 .form-actions {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   justify-content: flex-end;
-  margin-top: 1rem;
-}
-
-.btn-secondary,
-.btn-primary {
-  padding: 0.75rem 1.5rem;
-  border-radius: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-  display: flex;
-  align-items: center;
-  font-size: 0.875rem;
-}
-
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
-.btn-primary {
-  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
-  color: white;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
+  margin-top: 1.5rem;
 }
 
 .btn-spinner .spinning {
@@ -1192,19 +1143,19 @@ onMounted(initialize);
 
 /* Webhooks Section */
 .webhooks-section {
-  padding: 2rem;
+  padding: 2.5rem;
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .section-title {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   color: #111827;
   margin: 0;
   display: flex;
@@ -1214,60 +1165,64 @@ onMounted(initialize);
 .webhook-count {
   background: linear-gradient(45deg, #3b82f6, #1d4ed8);
   color: white;
-  font-weight: 600;
-  font-size: 0.75rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 12px;
-  min-width: 24px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+  min-width: 32px;
   text-align: center;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
 }
 
-/* No Webhooks */
-.no-webhooks {
+/* Empty Webhooks */
+.empty-webhooks {
   text-align: center;
-  padding: 3rem 2rem;
+  padding: 3rem;
   color: #9ca3af;
 }
 
-.no-webhooks-illustration {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(45deg, #f9fafb, #f3f4f6);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
-  font-size: 1.5rem;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+  box-shadow: 0 8px 20px rgba(156, 163, 175, 0.15);
 }
 
-.no-webhooks-text {
+.empty-text {
   margin: 0;
   font-style: italic;
-  font-size: 0.875rem;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 /* Webhooks List */
 .webhooks-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .webhook-item {
-  background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, white 0%, #fafbfc 100%);
+  border: 1px solid #f3f4f6;
+  border-radius: 20px;
+  padding: 2rem;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 1.5rem;
   transition: all 0.3s ease;
 }
 
 .webhook-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: #e5e7eb;
 }
 
 .webhook-item.inactive {
@@ -1279,8 +1234,8 @@ onMounted(initialize);
 }
 
 .status-indicator {
-  width: 12px;
-  height: 12px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #e5e7eb;
   transition: all 0.3s ease;
@@ -1288,7 +1243,7 @@ onMounted(initialize);
 
 .status-indicator.active {
   background: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
 }
 
 .webhook-content {
@@ -1298,63 +1253,66 @@ onMounted(initialize);
 .webhook-url {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .url-text {
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   color: #374151;
   flex: 1;
-  padding: 0.5rem 0.75rem;
-  background: white;
+  padding: 0.75rem 1rem;
+  background: #f8fafc;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 12px;
+  font-weight: 500;
 }
 
 .webhook-badge {
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
   background: #f3f4f6;
   color: #6b7280;
+  border: 1px solid #e5e7eb;
 }
 
 .webhook-badge.active {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  background: linear-gradient(45deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border-color: #a7f3d0;
 }
 
 .webhook-events {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .event-badge {
-  background: linear-gradient(45deg, #e0f2fe, #e1f5fe);
-  color: #0369a1;
-  font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.375rem 0.75rem;
-  border-radius: 12px;
-  border: 1px solid rgba(3, 105, 161, 0.2);
+  background: linear-gradient(45deg, #eff6ff, #dbeafe);
+  color: #1e40af;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 16px;
+  border: 1px solid #bfdbfe;
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
 }
 
 .event-badge-icon {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
 }
 
 .webhook-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-top: 0.25rem;
+  gap: 1.25rem;
+  margin-top: 0.5rem;
 }
 
 .toggle-wrapper {
@@ -1366,24 +1324,28 @@ onMounted(initialize);
   margin: 0;
 }
 
-.delete-btn {
-  background: linear-gradient(45deg, #ef4444, #dc2626);
-  color: white;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.action-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 1rem;
 }
 
-.delete-btn:hover {
+.action-btn.danger {
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+.action-btn.danger:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
 }
 
 /* Mobile Responsiveness */
@@ -1392,48 +1354,50 @@ onMounted(initialize);
     padding: 0;
   }
 
-  .modern-header {
-    padding: 2rem 1rem;
-    margin-bottom: 1rem;
-  }
-
-  .header-content {
+  .page-header__content {
     flex-direction: column;
-    text-align: center;
-    gap: 1.5rem;
+    align-items: stretch;
+    gap: var(--spacing-md);
+    padding: var(--spacing-lg);
   }
 
-  .header-title {
-    font-size: 2rem;
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
   }
 
   .header-stats {
     justify-content: center;
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .stat-card {
     min-width: 140px;
+    flex: 1;
   }
 
   .content-wrapper {
-    padding: 0 1rem 1rem;
+    padding: 0 1.5rem 2rem;
   }
 
-  .channel-header {
+  .card-header {
     flex-direction: column;
-    gap: 1rem;
-    padding: 1.5rem;
+    gap: 1.5rem;
+    padding: 2rem;
   }
 
   .channel-title {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .webhook-form {
-    padding: 1.5rem;
+    padding: 2rem;
   }
 
   .events-grid {
@@ -1446,7 +1410,8 @@ onMounted(initialize);
 
   .webhook-item {
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
+    padding: 1.5rem;
   }
 
   .webhook-controls {
@@ -1456,9 +1421,17 @@ onMounted(initialize);
 }
 
 @media (max-width: 480px) {
+  .page-header__content {
+    padding: var(--spacing-md);
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
   .header-stats {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--spacing-md);
   }
 
   .stat-card {

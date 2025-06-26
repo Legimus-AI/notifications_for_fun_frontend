@@ -369,33 +369,35 @@ onUnmounted(() => {
 
 <style scoped>
 .channel-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
   position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .channel-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary-light);
 }
 
 .channel-card--connecting {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md), 0 0 0 1px var(--color-primary-subtle);
 }
 
 /* Header */
 .channel-card__header {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .channel-card__status-indicator {
@@ -404,10 +406,10 @@ onUnmounted(() => {
 }
 
 .status-dot {
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 50%;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
 }
 
 .status-dot--pulse {
@@ -415,22 +417,22 @@ onUnmounted(() => {
 }
 
 .status--active .status-dot {
-  background: #10b981;
+  background: var(--color-success);
 }
 .status--ready .status-dot {
-  background: #f59e0b;
+  background: var(--color-warning);
 }
 .status--connecting .status-dot {
-  background: #3b82f6;
+  background: var(--color-primary);
 }
 .status--inactive .status-dot {
-  background: #6b7280;
+  background: var(--color-text-secondary);
 }
 .status--error .status-dot {
-  background: #ef4444;
+  background: var(--color-danger);
 }
 .status--logged_out .status-dot {
-  background: #374151;
+  background: var(--color-text-primary);
 }
 
 .channel-card__info {
@@ -439,22 +441,23 @@ onUnmounted(() => {
 }
 
 .channel-card__title {
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
-  color: #111827;
-  margin: 0 0 4px 0;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
   line-height: 1.3;
 }
 
 .channel-card__id {
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
   margin: 0;
-  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
-  background: #f3f4f6;
-  padding: 2px 8px;
-  border-radius: 6px;
+  font-family: var(--font-family-mono);
+  background: var(--color-background);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
   display: inline-block;
+  border: 1px solid var(--color-border-subtle);
 }
 
 .channel-card__actions {
@@ -502,42 +505,44 @@ onUnmounted(() => {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .status-badge--active {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
+  background: var(--color-success-subtle);
+  color: var(--color-success);
 }
 
 .status-badge--ready {
-  background: rgba(245, 158, 11, 0.1);
-  color: #92400e;
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
 }
 
 .status-badge--connecting {
-  background: rgba(59, 130, 246, 0.1);
-  color: #1d4ed8;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
 }
 
 .status-badge--inactive {
-  background: rgba(107, 114, 128, 0.1);
-  color: #374151;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .status-badge--error {
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
 }
 
 .status-badge--logged_out {
-  background: rgba(55, 65, 81, 0.1);
-  color: #374151;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
 }
 
 /* Details */

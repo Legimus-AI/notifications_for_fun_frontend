@@ -1,53 +1,82 @@
 <template>
-  <div id="app" class="app-layout">
-    <SidebarNav />
-    <main class="main-content">
-      <router-view />
+  <div id="app" class="app">
+    <!-- Navigation Sidebar -->
+    <aside class="app-sidebar">
+      <SidebarNav />
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <div class="app-content">
+        <RouterView />
+      </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
+import { RouterView } from "vue-router";
 import SidebarNav from "./components/layout/SidebarNav.vue";
 </script>
 
 <style>
-.app-layout {
+.app {
   display: flex;
+  min-height: 100vh;
+  background: var(--color-background);
 }
 
-.main-content {
-  flex-grow: 1;
-  margin-left: 260px; /* Same as sidebar width */
-  padding: 2rem;
-  background-color: #f3f4f6;
+.app-sidebar {
+  width: 280px;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.app-main {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-/* Remove old #app styles */
-#app {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.app-content {
+  flex: 1;
+  background: var(--color-background);
 }
 
-/* Overriding old container styles */
-.container {
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  max-width: 100% !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-    padding: 1rem;
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    width: 240px;
   }
 
-  /* You might want to hide the sidebar and use a toggle button on mobile */
-  .sidebar {
-    display: none;
+  .app-main {
+    margin-left: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .app-sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .app-main {
+    margin-left: 0;
   }
 }
 </style>

@@ -1,23 +1,32 @@
 <template>
-  <div>
-    <div v-if="store.isLoading" class="text-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
+  <div class="sessions-container">
+    <!-- Loading State -->
+    <div v-if="store.isLoading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Loading channels...</p>
     </div>
-    <div v-else class="row">
-      <div
-        v-for="channel in store.channels"
-        :key="channel.id"
-        class="col-md-6 col-lg-4"
-      >
-        <ChannelCard :channel="channel" />
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Channels Grid -->
+      <div v-if="store.channels.length" class="channels-grid">
+        <ChannelCard
+          v-for="channel in store.channels"
+          :key="channel.id"
+          :channel="channel"
+        />
       </div>
-      <div
-        v-if="!store.channels.length && !store.isLoading"
-        class="text-center text-muted mt-4"
-      >
-        <p>No active channels. Add one to get started.</p>
+
+      <!-- Empty State -->
+      <div v-else class="empty-state">
+        <div class="empty-state__icon">
+          <i class="bi bi-chat-dots"></i>
+        </div>
+        <h3 class="empty-state__title">No channels yet</h3>
+        <p class="empty-state__description">
+          Create your first WhatsApp channel to start managing your business
+          communications.
+        </p>
       </div>
     </div>
   </div>
@@ -59,36 +68,110 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.row {
+.sessions-container {
+  width: 100%;
+}
+
+/* Loading State */
+.loading-state {
   display: flex;
-  flex-wrap: wrap;
-  margin-right: -15px;
-  margin-left: -15px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  text-align: center;
 }
-.col-md-6 {
-  flex: 0 0 50%;
-  max-width: 50%;
-  padding: 0 15px;
+
+.loading-text {
+  margin-top: var(--spacing-md);
+  color: var(--color-text-secondary);
+  font-weight: 500;
 }
-@media (min-width: 992px) {
-  .col-lg-4 {
-    flex: 0 0 33.333%;
-    max-width: 33.333%;
+
+/* Channels Grid */
+.channels-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  min-height: 400px;
+}
+
+.empty-state__icon {
+  width: 80px;
+  height: 80px;
+  background: var(--color-primary-subtle);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.empty-state__icon i {
+  font-size: 2rem;
+  color: var(--color-primary);
+}
+
+.empty-state__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-sm) 0;
+}
+
+.empty-state__description {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .channels-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .empty-state {
+    padding: var(--spacing-2xl) var(--spacing-md);
+    min-height: 300px;
+  }
+
+  .empty-state__icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .empty-state__icon i {
+    font-size: 1.5rem;
+  }
+
+  .empty-state__title {
+    font-size: 1.25rem;
+  }
+
+  .empty-state__description {
+    font-size: 0.875rem;
   }
 }
-.spinner-border {
-  width: 3rem;
-  height: 3rem;
-}
-.alert {
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid transparent;
-  border-radius: 0.25rem;
-}
-.alert-danger {
-  color: #842029;
-  background-color: #f8d7da;
-  border-color: #f5c2c7;
+
+@media (max-width: 480px) {
+  .channels-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
 }
 </style>

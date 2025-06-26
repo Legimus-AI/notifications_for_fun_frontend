@@ -1,63 +1,95 @@
 <template>
   <div class="sidebar">
+    <!-- Brand Header -->
     <div class="sidebar-header">
-      <h1 class="brand">Notifications for fun</h1>
+      <div class="brand-container">
+        <div class="brand-icon">
+          <font-awesome-icon :icon="['fas', 'bell']" />
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">Notifications</h1>
+          <p class="brand-subtitle">for fun</p>
+        </div>
+      </div>
     </div>
+
+    <!-- Main Navigation -->
     <nav class="nav-main">
       <ul class="nav-list">
         <li class="nav-item">
           <router-link to="/" class="nav-link">
-            <i class="bi bi-grid-1x2-fill"></i>
+            <div class="nav-icon">
+              <font-awesome-icon :icon="['fas', 'table-columns']" />
+            </div>
             <span>Dashboard</span>
           </router-link>
         </li>
+
+        <!-- Integrations Section -->
         <li class="nav-item">
-          <a
+          <button
             @click="toggleIntegrations"
-            class="nav-link collapsible"
+            class="nav-link nav-toggle"
             :class="{ 'is-open': integrationsOpen }"
           >
-            <i class="bi bi-plugin"></i>
+            <div class="nav-icon">
+              <font-awesome-icon :icon="['fas', 'puzzle-piece']" />
+            </div>
             <span>Integrations</span>
-            <i class="bi bi-chevron-down toggle-icon"></i>
-          </a>
+            <font-awesome-icon
+              :icon="['fas', 'chevron-down']"
+              class="toggle-icon"
+            />
+          </button>
           <ul class="nav-submenu" :class="{ 'is-open': integrationsOpen }">
             <li class="nav-submenu-item">
-              <router-link to="/webhooks" class="nav-link">
-                <i class="bi bi-webhook"></i>
+              <router-link to="/webhooks" class="nav-link nav-link--sub">
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'share-nodes']" />
+                </div>
                 <span>Webhooks</span>
               </router-link>
             </li>
             <li class="nav-submenu-item">
-              <router-link to="/management/api-keys" class="nav-link">
-                <i class="bi bi-key-fill"></i>
+              <router-link
+                to="/management/api-keys"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'key']" />
+                </div>
                 <span>API Keys</span>
               </router-link>
             </li>
             <li class="nav-submenu-item">
-              <router-link to="/management/phone-numbers" class="nav-link">
-                <i class="bi bi-phone-fill"></i>
+              <router-link
+                to="/management/phone-numbers"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'phone']" />
+                </div>
                 <span>Phone Numbers</span>
               </router-link>
             </li>
           </ul>
         </li>
-        <li class="nav-item disabled">
-          <a class="nav-link">
-            <i class="bi bi-chat-dots-fill"></i>
-            <span>Live Chat</span>
-            <span class="badge">3</span>
-          </a>
-        </li>
       </ul>
     </nav>
+
+    <!-- User Profile Footer -->
     <div class="sidebar-footer">
       <div class="user-profile">
-        <div class="user-avatar">JD</div>
+        <div class="user-avatar">
+          <font-awesome-icon :icon="['fas', 'user']" />
+        </div>
         <div class="user-info">
           <span class="user-name">John Doe</span>
-          <span class="user-email">john@company.com</span>
+          <span class="user-role">Administrator</span>
         </div>
+        <button class="user-menu-btn">
+          <font-awesome-icon :icon="['fas', 'ellipsis']" />
+        </button>
       </div>
     </div>
   </div>
@@ -75,157 +107,372 @@ const toggleIntegrations = () => {
 
 <style scoped>
 .sidebar {
-  width: 260px;
-  background-color: #111827;
-  color: #d1d5db;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  border-right: 1px solid #475569;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  position: fixed;
+  overflow-y: auto;
+  position: relative;
+}
+
+.sidebar::before {
+  content: "";
+  position: absolute;
   top: 0;
   left: 0;
-  border-right: 1px solid #1f2937;
+  right: 0;
+  bottom: 0;
+  background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' width='32' height='32' fill='none' stroke='rgb(255,255,255,0.03)'%3e%3cpath d='m0 2 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2L20 0v2l-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2-2 2-2-2L0 4z'/%3e%3c/svg%3e");
+  pointer-events: none;
 }
 
+/* Brand Header */
 .sidebar-header {
-  padding: 1.5rem;
-  text-align: center;
+  padding: 2rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
-.brand {
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-icon {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: white;
-  font-weight: 700;
-  font-size: 2rem;
-  margin: 0;
+  font-size: 1.25rem;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  flex-shrink: 0;
 }
 
+.brand-text {
+  flex: 1;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.brand-subtitle {
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Navigation */
 .nav-main {
-  flex-grow: 1;
-  padding: 0 1rem;
+  flex: 1;
+  padding: 1.5rem 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-list {
   list-style: none;
   padding: 0;
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.25rem;
-  border-radius: 6px;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
   text-decoration: none;
-  color: #d1d5db;
-  transition: background-color 0.2s, color 0.2s;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
   cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0.05)
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 16px;
+}
+
+.nav-link:hover::before {
+  opacity: 1;
 }
 
 .nav-link:hover {
-  background-color: #1f2937;
   color: white;
+  transform: translateX(4px);
 }
 
 .nav-link.router-link-active,
 .nav-link.router-link-exact-active {
-  background-color: #3b82f6;
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
   color: white;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
 }
 
-.nav-link i {
-  margin-right: 0.75rem;
-  font-size: 1.25rem;
-  width: 24px;
-  text-align: center;
+.nav-link.router-link-active::before,
+.nav-link.router-link-exact-active::before {
+  opacity: 0;
+}
+
+.nav-icon {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover .nav-icon,
+.nav-link.router-link-active .nav-icon,
+.nav-link.router-link-exact-active .nav-icon {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
 }
 
 .nav-link span {
-  flex-grow: 1;
+  flex: 1;
+  font-weight: 600;
 }
 
-.collapsible .toggle-icon {
+/* Toggle Button */
+.nav-toggle .toggle-icon {
+  font-size: 0.875rem;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
   margin-left: auto;
-  transition: transform 0.2s;
 }
 
-.collapsible.is-open .toggle-icon {
+.nav-toggle.is-open .toggle-icon {
   transform: rotate(180deg);
 }
 
+/* Submenu */
 .nav-submenu {
   list-style: none;
-  padding-left: 1rem;
+  padding: 0;
+  margin: 0;
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease-out;
+  transition: max-height 0.4s ease-out;
+  margin-top: 0.5rem;
+  margin-left: 1rem;
 }
 
 .nav-submenu.is-open {
-  max-height: 500px; /* Adjust as needed */
+  max-height: 300px;
 }
 
-.nav-submenu .nav-link {
-  padding-left: 2.75rem; /* Indent submenu items */
-  font-size: 0.9rem;
+.nav-submenu-item {
+  margin-bottom: 0.375rem;
 }
 
-.nav-item.disabled .nav-link {
-  color: #6b7280;
-  cursor: not-allowed;
+.nav-link--sub {
+  padding: 0.875rem 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  border-radius: 12px;
+  position: relative;
+  margin-left: 1rem;
 }
 
-.nav-item.disabled .nav-link:hover {
-  background-color: transparent;
+.nav-link--sub::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 1.5rem;
+  background: linear-gradient(to bottom, transparent, #475569, transparent);
+  border-radius: 1px;
 }
 
-.badge {
-  background-color: #ef4444;
-  color: white;
-  border-radius: 9999px;
-  padding: 0.1rem 0.5rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-left: auto;
+.nav-link--sub .nav-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.875rem;
 }
 
+.nav-link--sub:hover {
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link--sub.router-link-active,
+.nav-link--sub.router-link-exact-active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  box-shadow: none;
+}
+
+.nav-link--sub.router-link-active .nav-icon,
+.nav-link--sub.router-link-exact-active .nav-icon {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.nav-link--sub.router-link-active::before,
+.nav-link--sub.router-link-exact-active::before {
+  background: linear-gradient(to bottom, #3b82f6, #60a5fa, #3b82f6);
+  width: 3px;
+}
+
+/* User Profile Footer */
 .sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid #1f2937;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 6px;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 16px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.user-profile:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #4b5563;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: linear-gradient(45deg, #8b5cf6, #7c3aed);
   color: white;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
 }
 
 .user-info {
-  display: flex;
-  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .user-name {
+  display: block;
+  font-weight: 700;
   color: white;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.user-role {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.3;
+  margin-top: 0.125rem;
   font-weight: 500;
 }
 
-.user-email {
-  font-size: 0.8rem;
-  color: #9ca3af;
+.user-menu-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.user-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: rotate(90deg);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .nav-main {
+    padding: 1rem 0.75rem;
+  }
+
+  .sidebar-footer {
+    padding: 1rem;
+  }
+
+  .nav-link {
+    padding: 0.875rem 1rem;
+  }
+
+  .brand-container {
+    gap: 0.75rem;
+  }
+
+  .brand-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.125rem;
+  }
+
+  .brand-title {
+    font-size: 1.25rem;
+  }
 }
 </style>

@@ -22,19 +22,25 @@ export interface ChannelWebhook {
   isActive: boolean;
 }
 
+export interface WhatsAppChannelConfig {
+  phoneNumber?: string;
+  connectedAt?: string;
+}
+
 export interface WhatsAppChannel {
   id: string;
   channelId: string;
   name: string;
   type: "whatsapp_automated";
   status: ChannelStatus;
-  phoneNumber?: string;
+  phoneNumber?: string; // Legacy field for backward compatibility
   lastActivity?: string;
   lastStatusUpdate?: string;
   isActive?: boolean;
   isConnecting?: boolean;
   connectionError?: string | null;
   webhooks?: ChannelWebhook[];
+  config?: WhatsAppChannelConfig;
 }
 
 export interface CreateChannelRequest {

@@ -37,6 +37,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: "Webhooks" },
   },
   {
+    path: "/contacts",
+    name: "Contacts",
+    component: () => import("../views/ContactsView.vue"),
+    meta: { title: "Contact Management" },
+  },
+  {
     path: "/management",
     name: "Management",
     component: () => import("../views/management/ManagementView.vue"),

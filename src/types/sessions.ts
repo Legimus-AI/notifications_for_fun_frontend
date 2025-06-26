@@ -1,6 +1,8 @@
 export type ChannelStatus =
   | "inactive"
   | "connecting"
+  | "connected"
+  | "authenticated"
   | "qr_ready"
   | "pairing_code_ready"
   | "active"

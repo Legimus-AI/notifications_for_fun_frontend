@@ -5,6 +5,7 @@ import "bootstrap-icons/font/bootstrap-icons.css";
 import App from "./App.vue";
 import router from "./router";
 import "./style.css";
+import { logConfig } from "./config";
 
 // FontAwesome imports
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -56,5 +57,8 @@ app.component("font-awesome-icon", FontAwesomeIcon);
 
 app.use(pinia);
 app.use(router);
+
+// Log configuration in development mode
+logConfig();
 
 app.mount("#app");

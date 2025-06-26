@@ -1,4 +1,5 @@
 import axios from "axios";
+import { API_CONFIG } from "@/config";
 import type {
   CreateWebhookRequest,
   Webhook,
@@ -32,7 +33,8 @@ interface ApiResponse<T> {
 }
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:4500/api",
+  baseURL: `${API_CONFIG.BASE_URL}/api`,
+  timeout: API_CONFIG.TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },

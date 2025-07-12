@@ -210,6 +210,19 @@
           Pairing Code
         </button>
 
+        <button
+          v-if="shouldShowRefreshQr"
+          class="menu-item menu-item--secondary"
+          @click="refreshQrCode"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+            />
+          </svg>
+          Refresh QR
+        </button>
+
         <button class="menu-item menu-item--warning" @click="disconnect">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z" />
@@ -271,6 +284,7 @@ const statusType = computed(() => {
     case "pairing_code_ready":
       return "ready";
     case "connecting":
+    case "generating_qr":
       return "connecting";
     case "inactive":
     case "close":
@@ -297,6 +311,8 @@ const statusLabel = computed(() => {
       return "Pairing Ready";
     case "connecting":
       return "Connecting";
+    case "generating_qr":
+      return "Generating QR...";
     case "inactive":
     case "close":
       return "Inactive";
@@ -317,6 +333,16 @@ const connectedPhoneNumber = computed(() => {
 // Get connected time from config
 const connectedAt = computed(() => {
   return props.channel.config?.connectedAt;
+});
+
+// Show refresh QR option when appropriate
+const shouldShowRefreshQr = computed(() => {
+  return (
+    props.channel.status === "error" ||
+    props.channel.status === "logged_out" ||
+    props.channel.connectionError ||
+    (props.channel.status === "inactive" && connectedPhoneNumber.value)
+  );
 });
 
 // Format connected time
@@ -405,6 +431,18 @@ const requestPairingCode = async () => {
     }
   } catch (err: any) {
     error(err.message || "Failed to request pairing code", "Error");
+  }
+  closeMenu();
+};
+
+const refreshQrCode = async () => {
+  try {
+    // Subscribe to channel updates to receive new QR code
+    store.subscribeToChannel(props.channel.channelId);
+    await store.refreshQrCode(props.channel.channelId);
+    success("QR code refresh initiated", "Success");
+  } catch (err: any) {
+    error(err.message || "Failed to refresh QR code", "Error");
   }
   closeMenu();
 };

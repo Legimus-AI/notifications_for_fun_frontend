@@ -25,6 +25,37 @@
           </router-link>
         </li>
 
+        <!-- Whatsapp Section -->
+        <li class="nav-item">
+          <button
+            @click="toggleWhatsapp"
+            class="nav-link nav-toggle"
+            :class="{ 'is-open': whatsappOpen }"
+          >
+            <div class="nav-icon">
+              <font-awesome-icon :icon="['fab', 'whatsapp']" />
+            </div>
+            <span>Whatsapp</span>
+            <font-awesome-icon
+              :icon="['fas', 'chevron-down']"
+              class="toggle-icon"
+            />
+          </button>
+          <ul class="nav-submenu" :class="{ 'is-open': whatsappOpen }">
+            <li class="nav-submenu-item">
+              <router-link
+                to="/whatsapp/messages"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'comments']" />
+                </div>
+                <span>Messages</span>
+              </router-link>
+            </li>
+          </ul>
+        </li>
+
         <!-- Integrations Section -->
         <li class="nav-item">
           <button
@@ -72,6 +103,16 @@
                 <span>Phone Numbers</span>
               </router-link>
             </li>
+            <li v-if="authStore.isSuperAdmin">
+              <router-link
+                to="/management/users"
+                class="nav-link"
+                active-class="active"
+              >
+                <font-awesome-icon :icon="['fas', 'users']" />
+                User Management
+              </router-link>
+            </li>
           </ul>
         </li>
       </ul>
@@ -84,12 +125,29 @@
           <font-awesome-icon :icon="['fas', 'user']" />
         </div>
         <div class="user-info">
-          <span class="user-name">John Doe</span>
-          <span class="user-role">Administrator</span>
+          <span class="user-name">{{ user?.email || "Guest" }}</span>
+          <span class="user-role">{{
+            user?.user_metadata?.role || "User"
+          }}</span>
         </div>
-        <button class="user-menu-btn">
-          <font-awesome-icon :icon="['fas', 'ellipsis']" />
-        </button>
+        <div class="user-actions">
+          <router-link to="/settings" class="user-action-btn" title="Settings">
+            <font-awesome-icon :icon="['fas', 'cog']" />
+          </router-link>
+          <button
+            class="user-action-btn logout-btn"
+            @click="handleLogout"
+            :disabled="isLoggingOut"
+            title="Logout"
+          >
+            <font-awesome-icon
+              :icon="
+                isLoggingOut ? ['fas', 'spinner'] : ['fas', 'sign-out-alt']
+              "
+              :class="{ spinning: isLoggingOut }"
+            />
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -97,11 +155,43 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/store/auth";
+import { useToast } from "@/composables/useToast";
+import { storeToRefs } from "pinia";
 
+const router = useRouter();
+const authStore = useAuthStore();
+const { success, error } = useToast();
+
+// Refs from store
+const { user } = storeToRefs(authStore);
+
+// Component state
 const integrationsOpen = ref(true);
+const whatsappOpen = ref(true);
+const isLoggingOut = ref(false);
 
 const toggleIntegrations = () => {
   integrationsOpen.value = !integrationsOpen.value;
+};
+
+const toggleWhatsapp = () => {
+  whatsappOpen.value = !whatsappOpen.value;
+};
+
+const handleLogout = async () => {
+  isLoggingOut.value = true;
+
+  try {
+    await authStore.logout();
+    success("Logged out successfully", "Success");
+    router.push("/login");
+  } catch (err: any) {
+    error(err.message || "Logout failed", "Error");
+  } finally {
+    isLoggingOut.value = false;
+  }
 };
 </script>
 
@@ -422,7 +512,13 @@ const toggleIntegrations = () => {
   font-weight: 500;
 }
 
-.user-menu-btn {
+.user-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.user-action-btn {
   width: 2.25rem;
   height: 2.25rem;
   border: none;
@@ -437,10 +533,32 @@ const toggleIntegrations = () => {
   flex-shrink: 0;
 }
 
-.user-menu-btn:hover {
+.user-action-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   transform: rotate(90deg);
+}
+
+.user-action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.user-action-btn:disabled:hover {
+  transform: none;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */

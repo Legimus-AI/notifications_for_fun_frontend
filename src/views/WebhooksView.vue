@@ -1,36 +1,28 @@
 <template>
   <div class="webhooks-container">
     <!-- Page Header -->
-    <header class="page-header">
-      <div class="page-header__content">
-        <div class="page-title-section">
-          <h1 class="page-title">Webhook Management</h1>
-          <p class="page-subtitle">
-            Configure and monitor webhook endpoints for real-time notifications
-          </p>
-        </div>
-        <div class="header-stats">
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="bi bi-broadcast"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ totalChannels }}</div>
-              <div class="stat-label">Active Channels</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon">
-              <i class="bi bi-link-45deg"></i>
-            </div>
-            <div class="stat-content">
-              <div class="stat-value">{{ totalWebhooks }}</div>
-              <div class="stat-label">Total Webhooks</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <PageHeader
+      title="Webhooks"
+      subtitle="Configure and monitor webhook endpoints for real-time notifications"
+      :icon="['fas', 'share-nodes']"
+      :breadcrumbs="[
+        { label: 'Integrations', icon: ['fas', 'puzzle-piece'], to: '/' },
+        { label: 'Webhooks', icon: ['fas', 'share-nodes'] },
+      ]"
+    >
+      <template #stats>
+        <StatCard
+          :value="totalChannels"
+          label="Active Channels"
+          bootstrap-icon="bi bi-broadcast"
+        />
+        <StatCard
+          :value="totalWebhooks"
+          label="Total Webhooks"
+          bootstrap-icon="bi bi-link-45deg"
+        />
+      </template>
+    </PageHeader>
 
     <!-- Content Section -->
     <div class="content-wrapper">
@@ -341,6 +333,8 @@ import { BCollapse, BFormInput, BFormCheckbox } from "bootstrap-vue-3";
 import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/common/ToastContainer.vue";
 import ConfirmationModal from "@/components/common/ConfirmationModal.vue";
+import PageHeader from "@/components/layout/PageHeader.vue";
+import StatCard from "@/components/common/StatCard.vue";
 
 // Stores
 const channelStore = useChannelStore();
@@ -590,98 +584,7 @@ onMounted(initialize);
   color: #1f2937;
 }
 
-/* Page Header */
-.page-header {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  backdrop-filter: blur(8px);
-}
-
-.page-header__content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-lg);
-}
-
-.page-title-section {
-  flex: 1;
-  min-width: 0;
-}
-
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.025em;
-}
-
-.page-subtitle {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  margin: var(--spacing-xs) 0 0 0;
-  line-height: 1.5;
-}
-
-.header-stats {
-  display: flex;
-  gap: var(--spacing-lg);
-}
-
-.stat-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: var(--spacing-lg);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  min-width: 140px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-color: var(--color-primary);
-}
-
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary);
-  color: white;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.8rem;
-  color: var(--color-text-secondary);
-  margin-top: 0.25rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
+/* Page Header styles moved to PageHeader.vue component */
 
 /* Content Wrapper */
 .content-wrapper {
@@ -1354,32 +1257,6 @@ onMounted(initialize);
     padding: 0;
   }
 
-  .page-header__content {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-  }
-
-  .page-title {
-    font-size: 1.75rem;
-  }
-
-  .page-subtitle {
-    font-size: 0.875rem;
-  }
-
-  .header-stats {
-    justify-content: center;
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .stat-card {
-    min-width: 140px;
-    flex: 1;
-  }
-
   .content-wrapper {
     padding: 0 1.5rem 2rem;
   }
@@ -1421,23 +1298,6 @@ onMounted(initialize);
 }
 
 @media (max-width: 480px) {
-  .page-header__content {
-    padding: var(--spacing-md);
-  }
-
-  .page-title {
-    font-size: 1.5rem;
-  }
-
-  .header-stats {
-    flex-direction: column;
-    gap: var(--spacing-md);
-  }
-
-  .stat-card {
-    width: 100%;
-  }
-
   .webhook-url {
     flex-direction: column;
     align-items: flex-start;

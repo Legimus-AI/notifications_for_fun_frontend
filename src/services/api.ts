@@ -28,6 +28,11 @@ import type {
   ContactStatus,
   ContactProfilePicture,
 } from "@/types/contacts";
+import type { PaginatedResponse } from "@/types/pagination";
+import type {
+  WhatsAppEvent,
+  WhatsAppEventsResponse,
+} from "@/types/whatsappEvents";
 
 // Generic API response type
 interface ApiResponse<T> {
@@ -210,6 +215,17 @@ export default {
     return apiClient.get(
       `/whatsapp/channels/${channelId}/contacts/${jid}/photo`
     );
+  },
+
+  // WhatsApp Events
+  getWhatsAppEvents(params: {
+    channelId: string;
+    sort?: string;
+    order?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<WhatsAppEventsResponse> {
+    return apiClient.get("/whatsapp_events", { params });
   },
 
   // General API Endpoints

@@ -502,7 +502,7 @@ onUnmounted(() => {
   background: var(--color-danger);
 }
 .status--logged_out .status-dot {
-  background: var(--color-text-primary);
+  background: var(--color-danger);
 }
 
 .channel-card__info {
@@ -610,9 +610,9 @@ onUnmounted(() => {
 }
 
 .status-badge--logged_out {
-  background: var(--color-background);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger-light);
 }
 
 /* Details */

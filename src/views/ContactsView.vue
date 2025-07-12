@@ -132,7 +132,7 @@
 
         <!-- Error Alert -->
         <div
-          v-if="error"
+          v-if="storeError"
           class="alert alert-danger alert-dismissible fade show"
           role="alert"
         >
@@ -140,11 +140,11 @@
             :icon="['fas', 'exclamation-triangle']"
             class="me-2"
           />
-          {{ error }}
+          {{ storeError }}
           <button
             type="button"
             class="btn-close"
-            @click="error = null"
+            @click="storeError = null"
           ></button>
         </div>
 
@@ -329,10 +329,15 @@ import type { Contact } from "@/types/contacts";
 // Stores
 const contactStore = useContactStore();
 const channelStore = useChannelStore();
-const { showToast } = useToast();
+const { success, error, warning } = useToast();
 
 // Store refs
-const { contacts, loading, error, recentSearches } = storeToRefs(contactStore);
+const {
+  contacts,
+  loading,
+  error: storeError,
+  recentSearches,
+} = storeToRefs(contactStore);
 const { channels } = storeToRefs(channelStore);
 
 // Local state
@@ -352,13 +357,13 @@ const initialize = async () => {
   try {
     await channelStore.fetchChannels();
   } catch (e: any) {
-    showToast(e.message || "Failed to load channels", "error");
+    error(e.message || "Failed to load channels");
   }
 };
 
 const searchContact = async () => {
   if (!selectedChannelId.value || !searchPhoneNumber.value) {
-    showToast("Please select a channel and enter a phone number", "warning");
+    warning("Please select a channel and enter a phone number");
     return;
   }
 
@@ -369,35 +374,32 @@ const searchContact = async () => {
     );
 
     if (result.exists) {
-      showToast(
-        `Contact found: ${result.name || searchPhoneNumber.value}`,
-        "success"
-      );
+      success(`Contact found: ${result.name || searchPhoneNumber.value}`);
     } else {
-      showToast("Contact not found", "warning");
+      warning("Contact not found");
     }
   } catch (e: any) {
-    showToast(e.message || "Failed to search contact", "error");
+    error(e.message || "Failed to search contact");
   }
 };
 
 const loadContactStatus = async (contact: Contact) => {
   if (!selectedChannelId.value) {
-    showToast("Please select a channel", "warning");
+    warning("Please select a channel");
     return;
   }
 
   try {
     await contactStore.getContactStatus(selectedChannelId.value, contact.jid);
-    showToast("Status updated", "success");
+    success("Status updated");
   } catch (e: any) {
-    showToast(e.message || "Failed to load status", "error");
+    error(e.message || "Failed to load status");
   }
 };
 
 const loadProfilePicture = async (contact: Contact) => {
   if (!selectedChannelId.value) {
-    showToast("Please select a channel", "warning");
+    warning("Please select a channel");
     return;
   }
 
@@ -406,18 +408,18 @@ const loadProfilePicture = async (contact: Contact) => {
       selectedChannelId.value,
       contact.jid
     );
-    showToast("Profile picture loaded", "success");
+    success("Profile picture loaded");
   } catch (e: any) {
-    showToast(e.message || "Failed to load profile picture", "error");
+    error(e.message || "Failed to load profile picture");
   }
 };
 
 const copyJid = async (jid: string) => {
   try {
     await navigator.clipboard.writeText(jid);
-    showToast("JID copied to clipboard", "success");
+    success("JID copied to clipboard");
   } catch (e) {
-    showToast("Failed to copy JID", "error");
+    error("Failed to copy JID");
   }
 };
 
@@ -437,12 +439,12 @@ const formatDate = (dateString: string) => {
 const clearAllData = () => {
   contactStore.clearContacts();
   contactStore.clearSearchHistory();
-  showToast("All data cleared", "success");
+  success("All data cleared");
 };
 
 const removeFromSearchHistory = (phoneNumber: string) => {
   contactStore.removeFromSearchHistory(phoneNumber);
-  showToast("Removed from history", "success");
+  success("Removed from history");
 };
 
 // Lifecycle

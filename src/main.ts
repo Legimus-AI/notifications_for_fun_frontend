@@ -6,6 +6,7 @@ import App from "./App.vue";
 import router from "./router";
 import "./style.css";
 import { logConfig } from "./config";
+import { useAuthStore } from "./store/auth";
 
 // FontAwesome imports
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -44,6 +45,22 @@ import {
   faCopy,
   faCircle,
   faSpinner,
+  faComments,
+  faLock,
+  faEye,
+  faEyeSlash,
+  faSignInAlt,
+  faMagic,
+  faSignOutAlt,
+  faChevronRight,
+  faCog,
+  faUserPlus,
+  faRefresh,
+  faArrowLeft,
+  faEnvelope,
+  faUserTag,
+  faCalendar,
+  faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { faCircle as farCircle } from "@fortawesome/free-regular-svg-icons";
@@ -84,19 +101,46 @@ library.add(
   faCircle,
   faSpinner,
   faWhatsapp,
-  farCircle
+  farCircle,
+  faComments,
+  faLock,
+  faEye,
+  faEyeSlash,
+  faSignInAlt,
+  faMagic,
+  faSignOutAlt,
+  faChevronRight,
+  faCog,
+  faUserPlus,
+  faRefresh,
+  faArrowLeft,
+  faEnvelope,
+  faUserTag,
+  faCalendar,
+  faCheck
 );
 
-const app = createApp(App);
-const pinia = createPinia();
+// Initialize app
+const initializeApp = async () => {
+  const app = createApp(App);
+  const pinia = createPinia();
 
-// Register FontAwesome component globally
-app.component("font-awesome-icon", FontAwesomeIcon);
+  // Register FontAwesome component globally
+  app.component("font-awesome-icon", FontAwesomeIcon);
 
-app.use(pinia);
-app.use(router);
+  app.use(pinia);
+  app.use(router);
 
-// Log configuration in development mode
-logConfig();
+  // Initialize auth store and wait for it to complete
+  const authStore = useAuthStore();
+  await authStore.initializeAuth();
 
-app.mount("#app");
+  // Mount the app after auth is initialized
+  app.mount("#app");
+
+  // Log configuration in development mode
+  logConfig();
+};
+
+// Initialize the app
+initializeApp().catch(console.error);

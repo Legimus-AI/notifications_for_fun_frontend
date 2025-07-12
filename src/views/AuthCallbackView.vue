@@ -70,7 +70,10 @@ const handleAuthCallback = async () => {
     }
   } catch (err: any) {
     error.value = err.message || "Authentication failed";
-    showError(error.value, "Error");
+    if (error.value) {
+      showError(error.value || "An error occurred", "Error");
+      router.push({ name: "Login" });
+    }
   } finally {
     isLoading.value = false;
   }

@@ -212,7 +212,10 @@ const passwordForm = ref({
   confirmPassword: "",
 });
 
-const breadcrumbs = [{ text: "Settings", href: "/settings" }];
+const breadcrumbs = ref([
+  { label: "Dashboard", href: "/" },
+  { label: "Settings", href: "/settings" },
+]);
 
 // Computed
 const passwordsMatch = computed(() => {

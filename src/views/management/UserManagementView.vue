@@ -176,10 +176,11 @@ const newUser = ref({
   role: "user",
 });
 
-const breadcrumbs = [
-  { text: "Management", href: "/management" },
-  { text: "User Management", href: "/management/users" },
-];
+const breadcrumbs = ref([
+  { label: "Dashboard", href: "/" },
+  { label: "Management", href: "/management" },
+  { label: "User Management", href: "/management/users" },
+]);
 
 // Methods
 const handleCreateUser = async () => {
@@ -222,7 +223,7 @@ const loadUsers = async () => {
     users.value = data.users || [];
   } catch (err: any) {
     error.value = err.message || "Failed to load users";
-    showError(error.value, "Error");
+    showError(error.value || "An error occurred", "Error");
   } finally {
     isLoading.value = false;
   }

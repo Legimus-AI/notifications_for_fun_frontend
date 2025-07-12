@@ -201,6 +201,38 @@ export const useChannelStore = defineStore("channels", {
         throw new Error(errorMessage);
       }
     },
+    async refreshQrCode(channelId: string) {
+      // Update channel status to indicate QR refresh is in progress
+      const channel = this.channels.find((c) => c.channelId === channelId);
+      if (channel) {
+        channel.isConnecting = true;
+        channel.connectionError = null;
+        channel.status = "connecting";
+      }
+
+      try {
+        const response = await api.refreshQrCode(channelId);
+        if (response.ok) {
+          console.log(`🔄 QR code refresh initiated for channel: ${channelId}`);
+
+          // Update channel status to generating QR
+          if (channel) {
+            channel.status = "generating_qr";
+          }
+        }
+      } catch (e: any) {
+        const channel = this.channels.find((c) => c.channelId === channelId);
+        if (channel) {
+          channel.connectionError = `Failed to refresh QR code for channel ${channelId}.`;
+          channel.isConnecting = false;
+          channel.status = "error";
+        }
+        const errorMessage =
+          e.response?.data?.message || `Failed to refresh QR code.`;
+        this.error = errorMessage;
+        throw new Error(errorMessage);
+      }
+    },
     showQrCode(channelId: string, qrCode: string) {
       // If modal is already open for a different channel, close it first
       if (this.qrCodeModal.isOpen && this.qrCodeModal.channelId !== channelId) {

@@ -5,6 +5,7 @@ export type ChannelStatus =
   | "authenticated"
   | "qr_ready"
   | "pairing_code_ready"
+  | "generating_qr"
   | "active"
   | "open"
   | "close"

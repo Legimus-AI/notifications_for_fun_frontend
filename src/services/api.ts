@@ -92,6 +92,15 @@ export default {
   ): Promise<ApiResponse<{ code: string }>> {
     return apiClient.post(`/whatsapp/channels/${channelId}/pairing-code`, data);
   },
+  refreshQrCode(channelId: string): Promise<
+    ApiResponse<{
+      channelId: string;
+      status: string;
+      message: string;
+    }>
+  > {
+    return apiClient.post(`/whatsapp/channels/${channelId}/qr/refresh`);
+  },
   sendMessage(
     channelId: string,
     data: SendMessageRequest

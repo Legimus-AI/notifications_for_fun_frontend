@@ -1,16 +1,23 @@
 <template>
   <div class="page-container">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">API Keys</h1>
-        <p class="page-description">
-          Create and manage API keys for programmatic access.
-        </p>
-      </div>
-      <button class="btn btn-primary" @click="showCreateForm = !showCreateForm">
-        <i class="bi bi-plus-lg me-2"></i>Create API Key
-      </button>
-    </header>
+    <PageHeader
+      title="API Keys"
+      subtitle="Create and manage API keys for programmatic access"
+      :icon="['fas', 'key']"
+      :breadcrumbs="[
+        { label: 'Management', icon: ['fas', 'cog'], to: '/management' },
+        { label: 'API Keys', icon: ['fas', 'key'] },
+      ]"
+    >
+      <template #actions>
+        <button
+          class="btn btn-primary"
+          @click="showCreateForm = !showCreateForm"
+        >
+          <i class="bi bi-plus-lg me-2"></i>Create API Key
+        </button>
+      </template>
+    </PageHeader>
 
     <BCollapse v-model="showCreateForm" class="mb-4">
       <div class="card">
@@ -134,6 +141,7 @@ import { storeToRefs } from "pinia";
 import type { CreateApiKeyRequest } from "@/types/apiKeys";
 import { API_PERMISSIONS } from "@/types/apiKeys";
 import { BCollapse, BFormInput, BFormCheckbox } from "bootstrap-vue-3";
+import PageHeader from "@/components/layout/PageHeader.vue";
 
 // Store
 const apiKeyStore = useApiKeyStore();
@@ -188,19 +196,12 @@ onMounted(initialize);
 </script>
 
 <style scoped>
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
 }
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-}
-.page-description {
-  color: var(--text-secondary);
-}
+
 .btn-dark {
   background-color: #111827 !important;
   border-color: #111827 !important;

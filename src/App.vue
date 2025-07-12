@@ -1,7 +1,7 @@
 <template>
-  <div id="app" class="app">
+  <div id="app" class="app" :class="{ 'app--no-sidebar': !showSidebar }">
     <!-- Navigation Sidebar -->
-    <aside class="app-sidebar">
+    <aside v-if="showSidebar" class="app-sidebar">
       <SidebarNav />
     </aside>
 
@@ -11,12 +11,28 @@
         <RouterView />
       </div>
     </main>
+
+    <!-- Toast Container -->
+    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from "vue-router";
+import { RouterView, useRoute } from "vue-router";
+import { computed } from "vue";
 import SidebarNav from "./components/layout/SidebarNav.vue";
+import ToastContainer from "./components/common/ToastContainer.vue";
+import { useAuthStore } from "./store/auth";
+import { storeToRefs } from "pinia";
+
+const route = useRoute();
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
+
+// Show sidebar only when authenticated and not on login page
+const showSidebar = computed(() => {
+  return isAuthenticated.value && route.name !== "Login";
+});
 </script>
 
 <style>
@@ -49,6 +65,10 @@ import SidebarNav from "./components/layout/SidebarNav.vue";
 .app-content {
   flex: 1;
   background: var(--color-background);
+}
+
+.app--no-sidebar .app-main {
+  margin-left: 0;
 }
 
 /* Responsive Design */

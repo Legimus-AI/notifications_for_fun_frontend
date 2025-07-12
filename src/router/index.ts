@@ -21,6 +21,15 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: "/auth/callback",
+    name: "AuthCallback",
+    component: () => import("../views/AuthCallbackView.vue"),
+    meta: {
+      title: "Authentication",
+      requiresAuth: false,
+    },
+  },
+  {
     path: "/",
     name: "Dashboard",
     component: DashboardView,
@@ -54,6 +63,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: "Contact Management", requiresAuth: true },
   },
   {
+    path: "/settings",
+    name: "Settings",
+    component: () => import("../views/UserSettingsView.vue"),
+    meta: { title: "User Settings", requiresAuth: true },
+  },
+  {
     path: "/whatsapp/messages",
     name: "WhatsApp Messages",
     component: () => import("../views/WhatsAppMessagesView.vue"),
@@ -76,6 +91,12 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/management/PhoneNumbersView.vue"),
         meta: { title: "Phone Numbers" },
       },
+      {
+        path: "users",
+        name: "User Management",
+        component: () => import("../views/management/UserManagementView.vue"),
+        meta: { title: "User Management", requiresSuperAdmin: true },
+      },
     ],
     meta: { requiresAuth: true, title: "Management" },
   },
@@ -95,7 +116,7 @@ const router = createRouter({
 });
 
 // Navigation guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // Set document title
   if (to.meta?.title) {
     document.title = `${to.meta.title} - Notifications App`;
@@ -104,12 +125,38 @@ router.beforeEach((to, from, next) => {
   // Get auth store
   const authStore = useAuthStore();
 
+  // Wait for auth to finish loading if it's still initializing
+  let attempts = 0;
+  const maxAttempts = 50; // 5 seconds max wait
+
+  while (authStore.isLoading && attempts < maxAttempts) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    attempts++;
+  }
+
+  // If still loading after max attempts, proceed anyway
+  if (authStore.isLoading) {
+    console.warn("⚠️ Auth still loading after max wait time");
+  }
+
   // Check if route requires authentication
   if (to.meta?.requiresAuth) {
     if (!authStore.isAuthenticated) {
       // Redirect to login if not authenticated
       console.log("🔒 Route requires authentication, redirecting to login");
       next({ name: "Login" });
+      return;
+    }
+  }
+
+  // Check if route requires super admin access
+  if (to.meta?.requiresSuperAdmin) {
+    if (!authStore.isSuperAdmin) {
+      // Redirect to dashboard if not super admin
+      console.log(
+        "🔒 Route requires super admin access, redirecting to dashboard"
+      );
+      next({ name: "Dashboard" });
       return;
     }
   }

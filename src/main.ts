@@ -54,6 +54,13 @@ import {
   faSignOutAlt,
   faChevronRight,
   faCog,
+  faUserPlus,
+  faRefresh,
+  faArrowLeft,
+  faEnvelope,
+  faUserTag,
+  faCalendar,
+  faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { faCircle as farCircle } from "@fortawesome/free-regular-svg-icons";
@@ -103,23 +110,37 @@ library.add(
   faMagic,
   faSignOutAlt,
   faChevronRight,
-  faCog
+  faCog,
+  faUserPlus,
+  faRefresh,
+  faArrowLeft,
+  faEnvelope,
+  faUserTag,
+  faCalendar,
+  faCheck
 );
 
-const app = createApp(App);
-const pinia = createPinia();
+// Initialize app
+const initializeApp = async () => {
+  const app = createApp(App);
+  const pinia = createPinia();
 
-// Register FontAwesome component globally
-app.component("font-awesome-icon", FontAwesomeIcon);
+  // Register FontAwesome component globally
+  app.component("font-awesome-icon", FontAwesomeIcon);
 
-app.use(pinia);
-app.use(router);
+  app.use(pinia);
+  app.use(router);
 
-// Initialize auth store
-const authStore = useAuthStore();
-authStore.initializeAuth();
+  // Initialize auth store and wait for it to complete
+  const authStore = useAuthStore();
+  await authStore.initializeAuth();
 
-// Log configuration in development mode
-logConfig();
+  // Mount the app after auth is initialized
+  app.mount("#app");
 
-app.mount("#app");
+  // Log configuration in development mode
+  logConfig();
+};
+
+// Initialize the app
+initializeApp().catch(console.error);

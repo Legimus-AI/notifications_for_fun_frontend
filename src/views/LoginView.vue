@@ -32,8 +32,8 @@
             </div>
           </div>
 
-          <!-- Password Field -->
-          <div class="form-group">
+          <!-- Password Field (only for password auth) -->
+          <div v-if="!useMagicLink" class="form-group">
             <label for="password" class="form-label">
               <font-awesome-icon :icon="['fas', 'lock']" class="label-icon" />
               Password
@@ -71,7 +71,11 @@
           <button
             type="submit"
             class="login-button"
-            :disabled="isLoading || !credentials.email || !credentials.password"
+            :disabled="
+              isLoading ||
+              !credentials.email ||
+              (!useMagicLink && !credentials.password)
+            "
           >
             <font-awesome-icon
               v-if="isLoading"
@@ -79,7 +83,7 @@
               class="spinning"
             />
             <font-awesome-icon v-else :icon="['fas', 'sign-in-alt']" />
-            {{ isLoading ? "Signing in..." : "Sign In" }}
+            {{ getButtonText() }}
           </button>
         </form>
       </div>
@@ -107,18 +111,29 @@ const credentials = ref({
   password: "",
 });
 const showPassword = ref(false);
+const useMagicLink = ref(false);
 
 // Methods
 const handleLogin = async () => {
   try {
-    await authStore.login(credentials.value);
-    success("Login successful! Welcome back.", "Success");
-
-    // Redirect to dashboard
-    router.push("/");
+    if (useMagicLink.value) {
+      await authStore.loginWithMagicLink(credentials.value.email);
+      success("Magic link sent! Check your email.", "Success");
+    } else {
+      await authStore.loginWithPassword(credentials.value);
+      success("Login successful! Welcome back.", "Success");
+      router.push("/");
+    }
   } catch (err: any) {
     showError(err.message || "Login failed", "Error");
   }
+};
+
+const getButtonText = () => {
+  if (isLoading.value) {
+    return useMagicLink.value ? "Sending magic link..." : "Signing in...";
+  }
+  return useMagicLink.value ? "Send Magic Link" : "Sign In";
 };
 
 const fillDemoCredentials = () => {
@@ -164,7 +179,7 @@ onMounted(() => {
 
 .login-header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .logo {
@@ -191,6 +206,38 @@ onMounted(() => {
   color: var(--color-text-secondary);
   font-size: 1rem;
   margin: 0;
+}
+
+.auth-toggle {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 12px;
+  padding: 0.25rem;
+  margin-bottom: 2rem;
+  gap: 0.25rem;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.toggle-btn.active {
+  background: white;
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .login-form {
@@ -313,93 +360,11 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% {
+  from {
     transform: rotate(0deg);
   }
-  100% {
+  to {
     transform: rotate(360deg);
-  }
-}
-
-.demo-credentials {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e5e7eb;
-  text-align: center;
-}
-
-.demo-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-bottom: 1rem;
-}
-
-.demo-info {
-  background: #f8fafc;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-}
-
-.demo-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.25rem 0;
-  color: var(--color-text-primary);
-}
-
-.demo-item strong {
-  color: var(--color-text-secondary);
-}
-
-.demo-button {
-  background: linear-gradient(45deg, #10b981, #059669);
-  color: white;
-  border: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.demo-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.demo-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 480px) {
-  .login-container {
-    padding: 1rem;
-  }
-
-  .login-card {
-    padding: 2rem;
-  }
-
-  .logo-text {
-    font-size: 1.5rem;
-  }
-
-  .demo-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
   }
 }
 </style>

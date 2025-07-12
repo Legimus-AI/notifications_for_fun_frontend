@@ -1,10 +1,9 @@
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  createdAt: string;
-  updatedAt: string;
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+export interface User extends SupabaseUser {
+  // Add any custom fields if needed
+  name?: string;
+  role?: string;
 }
 
 export interface LoginRequest {
@@ -22,7 +21,6 @@ export interface LoginResponse {
 
 export interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;

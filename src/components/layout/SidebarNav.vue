@@ -103,6 +103,16 @@
                 <span>Phone Numbers</span>
               </router-link>
             </li>
+            <li v-if="authStore.isSuperAdmin">
+              <router-link
+                to="/management/users"
+                class="nav-link"
+                active-class="active"
+              >
+                <font-awesome-icon :icon="['fas', 'users']" />
+                User Management
+              </router-link>
+            </li>
           </ul>
         </li>
       </ul>
@@ -115,19 +125,29 @@
           <font-awesome-icon :icon="['fas', 'user']" />
         </div>
         <div class="user-info">
-          <span class="user-name">{{ user?.name || "Guest" }}</span>
-          <span class="user-role">{{ user?.role || "User" }}</span>
+          <span class="user-name">{{ user?.email || "Guest" }}</span>
+          <span class="user-role">{{
+            user?.user_metadata?.role || "User"
+          }}</span>
         </div>
-        <button
-          class="user-menu-btn"
-          @click="handleLogout"
-          :disabled="isLoggingOut"
-        >
-          <font-awesome-icon
-            :icon="isLoggingOut ? ['fas', 'spinner'] : ['fas', 'sign-out-alt']"
-            :class="{ spinning: isLoggingOut }"
-          />
-        </button>
+        <div class="user-actions">
+          <router-link to="/settings" class="user-action-btn" title="Settings">
+            <font-awesome-icon :icon="['fas', 'cog']" />
+          </router-link>
+          <button
+            class="user-action-btn logout-btn"
+            @click="handleLogout"
+            :disabled="isLoggingOut"
+            title="Logout"
+          >
+            <font-awesome-icon
+              :icon="
+                isLoggingOut ? ['fas', 'spinner'] : ['fas', 'sign-out-alt']
+              "
+              :class="{ spinning: isLoggingOut }"
+            />
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -492,7 +512,13 @@ const handleLogout = async () => {
   font-weight: 500;
 }
 
-.user-menu-btn {
+.user-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.user-action-btn {
   width: 2.25rem;
   height: 2.25rem;
   border: none;
@@ -507,18 +533,18 @@ const handleLogout = async () => {
   flex-shrink: 0;
 }
 
-.user-menu-btn:hover {
+.user-action-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   transform: rotate(90deg);
 }
 
-.user-menu-btn:disabled {
+.user-action-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.user-menu-btn:disabled:hover {
+.user-action-btn:disabled:hover {
   transform: none;
 }
 

@@ -101,12 +101,7 @@
                 </h2>
                 <div class="events-stats">
                   <span class="stat-item">
-                    <font-awesome-icon :icon="['fas', 'clock']" />
-                    {{ events.length }} events
-                  </span>
-                  <span v-if="totalEvents > 0" class="stat-item">
-                    <font-awesome-icon :icon="['fas', 'circle']" />
-                    {{ totalEvents }} total
+                    {{ totalEvents }} total messages
                   </span>
                 </div>
               </div>
@@ -123,6 +118,63 @@
                 />
                 Refresh
               </button>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="search-filters-section">
+              <div class="search-bar">
+                <font-awesome-icon :icon="['fas', 'search']" class="search-icon" />
+                <input
+                  type="text"
+                  v-model="searchQuery"
+                  placeholder="Search messages..."
+                  class="search-input"
+                  @input="handleSearch"
+                />
+                <button
+                  v-if="searchQuery"
+                  class="clear-search-btn"
+                  @click="clearSearch"
+                  title="Clear search"
+                >
+                  <font-awesome-icon :icon="['fas', 'times']" />
+                </button>
+              </div>
+
+              <div class="filters-row">
+                <div class="filter-group">
+                  <label class="filter-label">Type</label>
+                  <select v-model="messageTypeFilter" class="filter-select" @change="applyFilters">
+                    <option value="">All Types</option>
+                    <option value="text">Text</option>
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                    <option value="audio">Audio</option>
+                    <option value="document">Document</option>
+                    <option value="sticker">Sticker</option>
+                  </select>
+                </div>
+
+                <div class="filter-group">
+                  <label class="filter-label">Show</label>
+                  <select v-model="itemsPerPage" class="filter-select" @change="handleItemsPerPageChange">
+                    <option :value="10">10</option>
+                    <option :value="20">20</option>
+                    <option :value="30">30</option>
+                    <option :value="50">50</option>
+                    <option :value="100">100</option>
+                  </select>
+                </div>
+
+                <button
+                  v-if="hasActiveFilters"
+                  class="clear-filters-btn"
+                  @click="clearAllFilters"
+                >
+                  <font-awesome-icon :icon="['fas', 'times-circle']" />
+                  Clear Filters
+                </button>
+              </div>
             </div>
 
             <!-- Events Table -->
@@ -272,29 +324,61 @@
             </div>
 
             <!-- Pagination -->
-            <nav v-if="totalPages > 1" class="pagination-nav">
+            <nav v-if="totalPages > 0" class="pagination-nav">
               <div class="pagination-info">
-                <span>Page {{ currentPage }} of {{ totalPages }}</span>
-                <span class="pagination-total"
-                  >{{ totalEvents }} total events</span
-                >
+                <span>
+                  Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to
+                  {{ Math.min(currentPage * itemsPerPage, totalEvents) }} of {{ totalEvents }}
+                </span>
               </div>
+
               <div class="pagination-controls">
                 <button
-                  class="pagination-btn pagination-btn--prev"
+                  class="pagination-btn pagination-btn--icon"
+                  @click="goToFirstPage"
+                  :disabled="currentPage === 1"
+                  title="First page"
+                >
+                  <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+                </button>
+
+                <button
+                  class="pagination-btn pagination-btn--icon"
                   @click="prevPage"
                   :disabled="currentPage === 1"
+                  title="Previous page"
                 >
                   <font-awesome-icon :icon="['fas', 'chevron-left']" />
-                  Previous
                 </button>
+
+                <div class="pagination-pages">
+                  <button
+                    v-for="page in visiblePages"
+                    :key="page"
+                    class="pagination-page-btn"
+                    :class="{ active: page === currentPage }"
+                    @click="goToPage(page)"
+                  >
+                    {{ page }}
+                  </button>
+                </div>
+
                 <button
-                  class="pagination-btn pagination-btn--next"
+                  class="pagination-btn pagination-btn--icon"
                   @click="nextPage"
                   :disabled="currentPage >= totalPages"
+                  title="Next page"
                 >
-                  Next
                   <font-awesome-icon :icon="['fas', 'chevron-right']" />
+                </button>
+
+                <button
+                  class="pagination-btn pagination-btn--icon"
+                  @click="goToLastPage"
+                  :disabled="currentPage >= totalPages"
+                  title="Last page"
+                >
+                  <font-awesome-icon :icon="['fas', 'angle-double-right']" />
                 </button>
               </div>
             </nav>
@@ -340,8 +424,13 @@ const channelsLoading = ref(false);
 const currentPage = ref(1);
 const totalPages = ref(1);
 const totalEvents = ref(0);
-const limit = 30;
+const itemsPerPage = ref(30);
 const expandedPayloads = ref(new Set<string>());
+
+// Search and Filter State
+const searchQuery = ref("");
+const messageTypeFilter = ref("");
+const searchTimeout = ref<NodeJS.Timeout | null>(null);
 
 // Computed
 const channels = computed(() => channelStore.channels);
@@ -349,10 +438,36 @@ const selectedChannel = computed(() =>
   channels.value.find((c) => c.channelId === selectedChannelId.value)
 );
 
+const hasActiveFilters = computed(() => {
+  return searchQuery.value !== "" || messageTypeFilter.value !== "";
+});
+
+const visiblePages = computed(() => {
+  const pages: number[] = [];
+  const maxVisiblePages = 5;
+  const halfVisible = Math.floor(maxVisiblePages / 2);
+
+  let startPage = Math.max(1, currentPage.value - halfVisible);
+  let endPage = Math.min(totalPages.value, startPage + maxVisiblePages - 1);
+
+  if (endPage - startPage < maxVisiblePages - 1) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    pages.push(i);
+  }
+
+  return pages;
+});
+
 // Methods
 const selectChannel = (channelId: string) => {
   selectedChannelId.value = channelId;
   currentPage.value = 1;
+  // Reset filters when changing channels
+  searchQuery.value = "";
+  messageTypeFilter.value = "";
 };
 
 const formatTime = (date: string | Date) => {
@@ -462,13 +577,23 @@ const fetchEvents = async () => {
 
   eventsLoading.value = true;
   try {
-    const params = {
+    const params: any = {
       channelId: selectedChannelId.value,
       sort: "updatedAt",
       order: "desc",
       page: currentPage.value,
-      limit: limit,
+      limit: itemsPerPage.value,
     };
+
+    // Add search query if present
+    if (searchQuery.value) {
+      params.search = searchQuery.value;
+    }
+
+    // Add message type filter if present
+    if (messageTypeFilter.value) {
+      params.messageType = messageTypeFilter.value;
+    }
 
     const response = await api.getWhatsAppEvents(params);
     if (response.ok && response.payload) {
@@ -498,6 +623,53 @@ const prevPage = () => {
   if (currentPage.value > 1) {
     currentPage.value--;
   }
+};
+
+const goToPage = (page: number) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page;
+  }
+};
+
+const goToFirstPage = () => {
+  currentPage.value = 1;
+};
+
+const goToLastPage = () => {
+  currentPage.value = totalPages.value;
+};
+
+const handleItemsPerPageChange = () => {
+  currentPage.value = 1;
+  fetchEvents();
+};
+
+const handleSearch = () => {
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value);
+  }
+  searchTimeout.value = setTimeout(() => {
+    currentPage.value = 1;
+    fetchEvents();
+  }, 500);
+};
+
+const clearSearch = () => {
+  searchQuery.value = "";
+  currentPage.value = 1;
+  fetchEvents();
+};
+
+const applyFilters = () => {
+  currentPage.value = 1;
+  fetchEvents();
+};
+
+const clearAllFilters = () => {
+  searchQuery.value = "";
+  messageTypeFilter.value = "";
+  currentPage.value = 1;
+  fetchEvents();
 };
 
 const initialize = async () => {
@@ -636,7 +808,7 @@ onMounted(() => {
 
 .channel-card--selected {
   border-color: var(--color-primary);
-  background: rgba(59, 130, 246, 0.05);
+  background: #eff6ff;
   box-shadow: var(--shadow-sm);
 }
 
@@ -665,22 +837,22 @@ onMounted(() => {
 }
 
 .status-badge--active {
-  background: rgba(34, 197, 94, 0.1);
+  background: #d1fae5;
   color: #059669;
 }
 
 .status-badge--connecting {
-  background: rgba(251, 191, 36, 0.1);
+  background: #fef3c7;
   color: #d97706;
 }
 
 .status-badge--ready {
-  background: rgba(59, 130, 246, 0.1);
+  background: #dbeafe;
   color: #2563eb;
 }
 
 .status-badge--inactive {
-  background: rgba(107, 114, 128, 0.1);
+  background: #f3f4f6;
   color: #6b7280;
 }
 
@@ -783,6 +955,125 @@ onMounted(() => {
 .refresh-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Search and Filters Section */
+.search-filters-section {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-background);
+}
+
+.filters-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.filter-select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.clear-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.clear-filters-btn:hover {
+  background: var(--color-surface);
+  border-color: var(--color-text-secondary);
 }
 
 /* Events Table */
@@ -920,37 +1211,37 @@ onMounted(() => {
 }
 
 .type-text {
-  background: rgba(59, 130, 246, 0.1);
+  background: #dbeafe;
   color: #2563eb;
 }
 
 .type-sticker {
-  background: rgba(251, 191, 36, 0.1);
+  background: #fef3c7;
   color: #d97706;
 }
 
 .type-image {
-  background: rgba(34, 197, 94, 0.1);
+  background: #d1fae5;
   color: #059669;
 }
 
 .type-video {
-  background: rgba(168, 85, 247, 0.1);
+  background: #ede9fe;
   color: #7c3aed;
 }
 
 .type-audio {
-  background: rgba(239, 68, 68, 0.1);
+  background: #fee2e2;
   color: #dc2626;
 }
 
 .type-document {
-  background: rgba(107, 114, 128, 0.1);
+  background: #f3f4f6;
   color: #6b7280;
 }
 
 .type-other {
-  background: rgba(156, 163, 175, 0.1);
+  background: #f3f4f6;
   color: #9ca3af;
 }
 
@@ -1104,40 +1395,43 @@ onMounted(() => {
 
 /* Pagination */
 .pagination-nav {
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: var(--color-background);
 }
 
 .pagination-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.pagination-total {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
 
 .pagination-controls {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .pagination-btn {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--color-background);
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0.5rem;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--color-text-primary);
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.pagination-btn--icon {
+  width: 36px;
 }
 
 .pagination-btn:hover:not(:disabled) {
@@ -1147,8 +1441,43 @@ onMounted(() => {
 }
 
 .pagination-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  background: var(--color-background);
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0 0.5rem;
+}
+
+.pagination-page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.pagination-page-btn:hover:not(.active) {
+  background: var(--color-background);
+  border-color: var(--color-text-secondary);
+}
+
+.pagination-page-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 /* Empty States */
@@ -1215,18 +1544,55 @@ onMounted(() => {
     padding: 1rem;
   }
 
+  .events-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .search-filters-section {
+    padding: 1rem;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .clear-filters-btn {
+    margin-left: 0;
+  }
+
   .events-table-wrapper {
     max-height: 400px;
   }
 
   .pagination-nav {
     flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+    gap: 0.75rem;
+    align-items: center;
   }
 
-  .pagination-controls {
-    justify-content: center;
+  .pagination-info {
+    text-align: center;
+  }
+
+  .pagination-pages {
+    margin: 0 0.25rem;
+  }
+
+  .pagination-page-btn {
+    min-width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
   }
 }
 </style>

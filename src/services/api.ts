@@ -86,6 +86,12 @@ export default {
   deleteChannel(channelId: string): Promise<ApiResponse<void>> {
     return apiClient.delete(`/whatsapp/channels/${channelId}`);
   },
+  toggleChannelActive(
+    channelId: string,
+    isActive: boolean
+  ): Promise<ApiResponse<WhatsAppChannel>> {
+    return apiClient.patch(`/channels/${channelId}`, { isActive });
+  },
   requestPairingCode(
     channelId: string,
     data: PairingCodeRequest

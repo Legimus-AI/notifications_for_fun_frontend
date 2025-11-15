@@ -156,6 +156,30 @@
           }}</span
         >
       </div>
+
+      <!-- Channel Active Status -->
+      <div class="detail-item detail-item--toggle">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="detail-icon"
+        >
+          <path
+            d="M17,7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7M17,15A3,3 0 0,1 14,12A3,3 0 0,1 17,9A3,3 0 0,1 20,12A3,3 0 0,1 17,15Z"
+          />
+        </svg>
+        <span>Channel {{ channel.isActive ? 'Active' : 'Inactive' }}</span>
+        <button
+          class="toggle-switch"
+          :class="{ 'toggle-switch--active': channel.isActive }"
+          @click="toggleActive"
+          :disabled="isTogglingActive"
+        >
+          <span class="toggle-switch__slider"></span>
+        </button>
+      </div>
     </div>
 
     <!-- Error State -->
@@ -211,7 +235,6 @@
         </button>
 
         <button
-          v-if="shouldShowRefreshQr"
           class="menu-item menu-item--secondary"
           @click="refreshQrCode"
         >
@@ -228,6 +251,18 @@
             <path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z" />
           </svg>
           Disconnect
+        </button>
+
+        <button
+          class="menu-item menu-item--toggle"
+          @click="toggleActive"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M17,7H7A5,5 0 0,0 2,12A5,5 0 0,0 7,17H17A5,5 0 0,0 22,12A5,5 0 0,0 17,7M17,15A3,3 0 0,1 14,12A3,3 0 0,1 17,9A3,3 0 0,1 20,12A3,3 0 0,1 17,15Z"
+            />
+          </svg>
+          {{ channel.isActive ? 'Deactivate' : 'Activate' }} Channel
         </button>
 
         <button
@@ -274,6 +309,7 @@ const store = useChannelStore();
 const { success, error } = useToast();
 const menuOpen = ref(false);
 const showDeleteModal = ref(false);
+const isTogglingActive = ref(false);
 
 const statusType = computed(() => {
   switch (props.channel.status) {
@@ -416,6 +452,29 @@ const confirmDeleteChannel = async () => {
 
 const cancelDeleteChannel = () => {
   showDeleteModal.value = false;
+};
+
+const toggleActive = async () => {
+  if (isTogglingActive.value) return;
+  
+  isTogglingActive.value = true;
+  const newActiveState = !props.channel.isActive;
+  
+  try {
+    await store.toggleChannelActive(props.channel.channelId, newActiveState);
+    success(
+      `Channel ${newActiveState ? 'activated' : 'deactivated'} successfully`,
+      "Success"
+    );
+  } catch (err: any) {
+    error(
+      err.message || "Failed to toggle channel active status",
+      "Error"
+    );
+  } finally {
+    isTogglingActive.value = false;
+  }
+  closeMenu();
 };
 
 const requestPairingCode = async () => {
@@ -708,6 +767,53 @@ onUnmounted(() => {
   letter-spacing: 0.05em;
 }
 
+/* Toggle Switch */
+.detail-item--toggle {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-top: var(--spacing-xs);
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--color-text-secondary);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.toggle-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-switch--active {
+  background: var(--color-success);
+}
+
+.toggle-switch__slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch--active .toggle-switch__slider {
+  transform: translateX(20px);
+}
+
 /* Error State */
 .channel-card__error {
   background: rgba(239, 68, 68, 0.05);
@@ -823,6 +929,10 @@ onUnmounted(() => {
 .menu-item--danger:hover {
   background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
+}
+.menu-item--toggle:hover {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
 }
 
 /* Animations */

@@ -578,6 +578,26 @@ export const useChannelStore = defineStore("channels", {
       }
     },
 
+    async toggleChannelActive(channelId: string, isActive: boolean) {
+      this.error = null;
+      try {
+        const response = await api.toggleChannelActive(channelId, isActive);
+        if (response.ok && response.payload) {
+          // Update the channel in the store
+          const channelIndex = this.channels.findIndex(
+            (c) => c.channelId === channelId
+          );
+          if (channelIndex !== -1) {
+            this.channels[channelIndex].isActive = isActive;
+          }
+        }
+      } catch (e: any) {
+        this.error =
+          e.response?.data?.message || "Failed to toggle channel active status";
+        throw e;
+      }
+    },
+
     // Subscribe to channel events via socket
     subscribeToChannel(channelId: string) {
       console.log(

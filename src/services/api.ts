@@ -33,9 +33,19 @@ import type {
   WhatsAppEvent,
   WhatsAppEventsResponse,
 } from "@/types/whatsappEvents";
+import type {
+  TelegramChannel,
+  CreateTelegramChannelRequest,
+  UpdateTelegramChannelRequest,
+  VerifyLoginRequest,
+  SendMessageRequest as TelegramSendMessageRequest,
+  SendAlertRequest,
+  MakeCallRequest,
+  TelegramChannelStatusResponse,
+} from "@/types/telegramGhost";
 
 // Generic API response type
-interface ApiResponse<T> {
+export interface ApiResponse<T> {
   ok: boolean;
   payload?: T;
   message?: string;
@@ -246,5 +256,63 @@ export default {
   // General API Endpoints
   getApiStatus() {
     return apiClient.get("/status");
+  },
+
+  // Telegram Ghost Caller - Channel Management
+  createTelegramChannel(
+    data: CreateTelegramChannelRequest
+  ): Promise<ApiResponse<TelegramChannel>> {
+    return apiClient.post("/telegram_ghost_caller/channels", data);
+  },
+  getAllTelegramChannels(): Promise<ApiResponse<TelegramChannel[]>> {
+    return apiClient.get("/telegram_ghost_caller/channels");
+  },
+  getTelegramChannel(channelId: string): Promise<ApiResponse<TelegramChannel>> {
+    return apiClient.get(`/telegram_ghost_caller/channels/${channelId}`);
+  },
+  updateTelegramChannel(
+    channelId: string,
+    data: UpdateTelegramChannelRequest
+  ): Promise<ApiResponse<TelegramChannel>> {
+    return apiClient.put(`/telegram_ghost_caller/channels/${channelId}`, data);
+  },
+  deleteTelegramChannel(channelId: string): Promise<ApiResponse<void>> {
+    return apiClient.delete(`/telegram_ghost_caller/channels/${channelId}`);
+  },
+
+  // Telegram Ghost Caller - Authentication
+  initiateTelegramLogin(channelId: string): Promise<ApiResponse<{ message: string }>> {
+    return apiClient.post(`/telegram_ghost_caller/${channelId}/login`);
+  },
+  verifyTelegramLogin(
+    channelId: string,
+    data: VerifyLoginRequest
+  ): Promise<ApiResponse<{ message: string; authenticated: boolean }>> {
+    return apiClient.post(`/telegram_ghost_caller/${channelId}/verify`, data);
+  },
+  getTelegramChannelStatus(
+    channelId: string
+  ): Promise<ApiResponse<TelegramChannelStatusResponse>> {
+    return apiClient.get(`/telegram_ghost_caller/${channelId}/status`);
+  },
+
+  // Telegram Ghost Caller - Actions
+  sendTelegramMessage(
+    channelId: string,
+    data: TelegramSendMessageRequest
+  ): Promise<ApiResponse<{ messageId: string; status: string }>> {
+    return apiClient.post(`/telegram_ghost_caller/${channelId}/send`, data);
+  },
+  sendTelegramAlert(
+    channelId: string,
+    data: SendAlertRequest
+  ): Promise<ApiResponse<{ status: string; message: string }>> {
+    return apiClient.post(`/telegram_ghost_caller/${channelId}/alert`, data);
+  },
+  makeTelegramCall(
+    channelId: string,
+    data: MakeCallRequest
+  ): Promise<ApiResponse<{ status: string; message: string }>> {
+    return apiClient.post(`/telegram_ghost_caller/${channelId}/call`, data);
   },
 };

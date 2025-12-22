@@ -101,6 +101,30 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true, title: "Management" },
   },
   {
+    path: "/telegram-ghost/channels",
+    name: "Telegram Channels",
+    component: () => import("../views/telegram-ghost/TelegramChannels.vue"),
+    meta: { title: "Telegram Ghost Channels", requiresAuth: true },
+  },
+  {
+    path: "/telegram-ghost/send-message",
+    name: "Telegram Send Message",
+    component: () => import("../views/telegram-ghost/SendMessage.vue"),
+    meta: { title: "Send Telegram Message", requiresAuth: true },
+  },
+  {
+    path: "/telegram-ghost/send-alert",
+    name: "Telegram Send Alert",
+    component: () => import("../views/telegram-ghost/SendAlert.vue"),
+    meta: { title: "Send Telegram Alert", requiresAuth: true },
+  },
+  {
+    path: "/telegram-ghost/make-call",
+    name: "Telegram Make Call",
+    component: () => import("../views/telegram-ghost/MakeCall.vue"),
+    meta: { title: "Make Ghost Call", requiresAuth: true },
+  },
+  {
     path: "/:pathMatch(.*)*",
     name: "NotFound",
     component: () => import("../views/NotFoundView.vue"),

@@ -61,8 +61,13 @@ import {
   faUserTag,
   faCalendar,
   faCheck,
+  faList,
+  faPaperPlane,
+  faPlus,
+  faEdit,
+  faInfoCircle,
 } from "@fortawesome/free-solid-svg-icons";
-import { faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { faWhatsapp, faTelegram } from "@fortawesome/free-brands-svg-icons";
 import { faCircle as farCircle } from "@fortawesome/free-regular-svg-icons";
 
 // Add icons to library
@@ -117,7 +122,13 @@ library.add(
   faEnvelope,
   faUserTag,
   faCalendar,
-  faCheck
+  faCheck,
+  faList,
+  faPaperPlane,
+  faPlus,
+  faEdit,
+  faInfoCircle,
+  faTelegram
 );
 
 // Initialize app

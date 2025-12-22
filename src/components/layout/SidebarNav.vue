@@ -56,6 +56,70 @@
           </ul>
         </li>
 
+        <!-- Telegram Ghost Section -->
+        <li class="nav-item">
+          <button
+            @click="toggleTelegramGhost"
+            class="nav-link nav-toggle"
+            :class="{ 'is-open': telegramGhostOpen }"
+          >
+            <div class="nav-icon">
+              <font-awesome-icon :icon="['fab', 'telegram']" />
+            </div>
+            <span>Telegram Ghost</span>
+            <font-awesome-icon
+              :icon="['fas', 'chevron-down']"
+              class="toggle-icon"
+            />
+          </button>
+          <ul class="nav-submenu" :class="{ 'is-open': telegramGhostOpen }">
+            <li class="nav-submenu-item">
+              <router-link
+                to="/telegram-ghost/channels"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'list']" />
+                </div>
+                <span>Channels</span>
+              </router-link>
+            </li>
+            <li class="nav-submenu-item">
+              <router-link
+                to="/telegram-ghost/send-message"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'paper-plane']" />
+                </div>
+                <span>Send Message</span>
+              </router-link>
+            </li>
+            <li class="nav-submenu-item">
+              <router-link
+                to="/telegram-ghost/send-alert"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'bell']" />
+                </div>
+                <span>Send Alert</span>
+              </router-link>
+            </li>
+            <li class="nav-submenu-item">
+              <router-link
+                to="/telegram-ghost/make-call"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'phone']" />
+                </div>
+                <span>Ghost Call</span>
+              </router-link>
+            </li>
+          </ul>
+        </li>
+
         <!-- Integrations Section -->
         <li class="nav-item">
           <button
@@ -170,6 +234,7 @@ const { user } = storeToRefs(authStore);
 // Component state
 const integrationsOpen = ref(true);
 const whatsappOpen = ref(true);
+const telegramGhostOpen = ref(true);
 const isLoggingOut = ref(false);
 
 const toggleIntegrations = () => {
@@ -178,6 +243,10 @@ const toggleIntegrations = () => {
 
 const toggleWhatsapp = () => {
   whatsappOpen.value = !whatsappOpen.value;
+};
+
+const toggleTelegramGhost = () => {
+  telegramGhostOpen.value = !telegramGhostOpen.value;
 };
 
 const handleLogout = async () => {

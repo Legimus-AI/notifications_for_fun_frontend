@@ -388,8 +388,15 @@ const getMessageType = (payload: any) => {
   if (msg.stickerMessage) return "Sticker";
   if (msg.imageMessage) return "Image";
   if (msg.videoMessage) return "Video";
-  if (msg.audioMessage) return "Audio";
+  if (msg.audioMessage) return msg.audioMessage.ptt ? "Voice" : "Audio";
   if (msg.documentMessage) return "Document";
+  if (msg.locationMessage) return "Location";
+  if (msg.contactMessage || msg.contactsArrayMessage) return "Contact";
+  if (msg.reactionMessage) return "Reaction";
+  if (msg.buttonsMessage || msg.templateMessage) return "Buttons";
+  if (msg.listMessage) return "List";
+  if (msg.interactiveMessage) return "Interactive";
+  if (msg.pollCreationMessage || msg.pollUpdateMessage) return "Poll";
   return "Other";
 };
 
@@ -404,10 +411,24 @@ const getMessageIcon = (payload: any) => {
       return ["fas", "image"];
     case "Video":
       return ["fas", "video"];
-    case "Audio":
+    case "Voice":
       return ["fas", "microphone"];
+    case "Audio":
+      return ["fas", "music"];
     case "Document":
       return ["fas", "file"];
+    case "Location":
+      return ["fas", "location-dot"];
+    case "Contact":
+      return ["fas", "address-card"];
+    case "Reaction":
+      return ["fas", "heart"];
+    case "Buttons":
+    case "List":
+    case "Interactive":
+      return ["fas", "list-check"];
+    case "Poll":
+      return ["fas", "square-poll-vertical"];
     default:
       return ["fas", "question-circle"];
   }
@@ -418,11 +439,35 @@ const getPreview = (payload: any) => {
   const msg = payload.message;
   if (msg.conversation) return msg.conversation;
   if (msg.extendedTextMessage) return msg.extendedTextMessage.text;
-  if (msg.stickerMessage) return "🎭 Sticker message";
-  if (msg.imageMessage) return "📸 Image message";
-  if (msg.videoMessage) return "🎥 Video message";
-  if (msg.audioMessage) return "🎵 Audio message";
-  if (msg.documentMessage) return "📄 Document message";
+  if (msg.stickerMessage) return "🎭 Sticker";
+  if (msg.imageMessage)
+    return msg.imageMessage.caption
+      ? `📸 ${msg.imageMessage.caption}`
+      : "📸 Image";
+  if (msg.videoMessage)
+    return msg.videoMessage.caption
+      ? `🎥 ${msg.videoMessage.caption}`
+      : "🎥 Video";
+  if (msg.audioMessage)
+    return msg.audioMessage.ptt ? "🎙️ Voice note" : "🎵 Audio";
+  if (msg.documentMessage)
+    return `📄 ${msg.documentMessage.fileName ?? "Document"}`;
+  if (msg.locationMessage) {
+    const { name, degreesLatitude, degreesLongitude } = msg.locationMessage;
+    return `📍 ${name ?? `${degreesLatitude}, ${degreesLongitude}`}`;
+  }
+  if (msg.contactMessage)
+    return `👤 ${msg.contactMessage.displayName ?? "Contact"}`;
+  if (msg.contactsArrayMessage)
+    return `👥 ${msg.contactsArrayMessage.contacts?.length ?? 0} contacts`;
+  if (msg.reactionMessage)
+    return `${msg.reactionMessage.text ?? "❤️"} (reaction)`;
+  if (msg.buttonsMessage)
+    return `🔘 ${msg.buttonsMessage.contentText ?? "Buttons"}`;
+  if (msg.listMessage) return `📋 ${msg.listMessage.title ?? "List"}`;
+  if (msg.interactiveMessage) return "🔘 Interactive message";
+  if (msg.pollCreationMessage)
+    return `📊 Poll: ${msg.pollCreationMessage.name ?? ""}`;
   return "Media message";
 };
 

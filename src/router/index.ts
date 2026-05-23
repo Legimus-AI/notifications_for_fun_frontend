@@ -75,6 +75,12 @@ const routes: Array<RouteRecordRaw> = [
     meta: { title: "WhatsApp Messages", requiresAuth: true },
   },
   {
+    path: "/whatsapp/tester",
+    name: "WhatsApp Tester",
+    component: () => import("../views/WhatsAppTesterView.vue"),
+    meta: { title: "WhatsApp API Tester", requiresAuth: true },
+  },
+  {
     path: "/management",
     name: "Management",
     component: () => import("../views/management/ManagementView.vue"),

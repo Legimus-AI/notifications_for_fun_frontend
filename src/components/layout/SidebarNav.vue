@@ -53,6 +53,17 @@
                 <span>Messages</span>
               </router-link>
             </li>
+            <li class="nav-submenu-item">
+              <router-link
+                to="/whatsapp/tester"
+                class="nav-link nav-link--sub"
+              >
+                <div class="nav-icon">
+                  <font-awesome-icon :icon="['fas', 'flask']" />
+                </div>
+                <span>API Tester</span>
+              </router-link>
+            </li>
           </ul>
         </li>
 

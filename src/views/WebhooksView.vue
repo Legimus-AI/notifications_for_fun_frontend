@@ -240,67 +240,141 @@
                 class="webhook-item"
                 :class="{ inactive: !webhook.isActive }"
               >
-                <div class="webhook-status">
-                  <div
-                    class="status-indicator"
-                    :class="{ active: webhook.isActive }"
-                  ></div>
-                </div>
+                <!-- Edit mode -->
+                <template v-if="webhook._id && editWebhookForms[webhook._id]">
+                  <div class="webhook-content" style="flex: 1;">
+                    <div class="form-group" style="margin-bottom: 0.75rem;">
+                      <label class="form-label">
+                        <i class="bi bi-link-45deg me-2"></i>Webhook URL
+                      </label>
+                      <BFormInput
+                        :model-value="editWebhookForms[webhook._id].url"
+                        @update:model-value="(v: string) => updateEditFormUrl(webhook._id!, v)"
+                        type="url"
+                        placeholder="https://your-server.com/webhook"
+                        required
+                        class="modern-input"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">
+                        <i class="bi bi-lightning me-2"></i>Event Types
+                      </label>
+                      <div class="events-grid">
+                        <div
+                          v-for="event in availableEvents"
+                          :key="event.value"
+                          class="event-option"
+                        >
+                          <BFormCheckbox
+                            :model-value="editWebhookForms[webhook._id].events"
+                            @update:model-value="(value: string[]) => updateEditFormEvents(webhook._id!, value)"
+                            :value="event.value"
+                            class="event-checkbox"
+                          >
+                            <div class="event-content">
+                              <i
+                                class="event-icon"
+                                :class="getEventIcon(event.value)"
+                              ></i>
+                              <span class="event-label">{{ event.label }}</span>
+                            </div>
+                          </BFormCheckbox>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="form-actions">
+                      <button
+                        type="button"
+                        class="modern-btn secondary"
+                        @click="cancelEditWebhook(webhook._id!)"
+                      >
+                        <i class="bi bi-x me-2"></i>Cancel
+                      </button>
+                      <button
+                        type="button"
+                        class="modern-btn primary"
+                        :disabled="channelsLoading"
+                        @click="handleSaveEditWebhook(channel.channelId, webhook._id!)"
+                      >
+                        <i class="bi bi-check2 me-2"></i>
+                        {{ channelsLoading ? "Saving..." : "Save changes" }}
+                      </button>
+                    </div>
+                  </div>
+                </template>
 
-                <div class="webhook-content">
-                  <div class="webhook-url">
-                    <i class="bi bi-link-45deg me-2"></i>
-                    <span class="url-text">{{ webhook.url }}</span>
+                <!-- Display mode -->
+                <template v-else>
+                  <div class="webhook-status">
                     <div
-                      class="webhook-badge"
+                      class="status-indicator"
                       :class="{ active: webhook.isActive }"
-                    >
-                      {{ webhook.isActive ? "Active" : "Inactive" }}
+                    ></div>
+                  </div>
+
+                  <div class="webhook-content">
+                    <div class="webhook-url">
+                      <i class="bi bi-link-45deg me-2"></i>
+                      <span class="url-text">{{ webhook.url }}</span>
+                      <div
+                        class="webhook-badge"
+                        :class="{ active: webhook.isActive }"
+                      >
+                        {{ webhook.isActive ? "Active" : "Inactive" }}
+                      </div>
+                    </div>
+
+                    <div class="webhook-events">
+                      <span
+                        v-for="event in webhook.events"
+                        :key="event"
+                        class="event-badge"
+                      >
+                        <i
+                          class="event-badge-icon"
+                          :class="getEventIcon(event)"
+                        ></i>
+                        {{ formatEventName(event) }}
+                      </span>
                     </div>
                   </div>
 
-                  <div class="webhook-events">
-                    <span
-                      v-for="event in webhook.events"
-                      :key="event"
-                      class="event-badge"
+                  <div class="webhook-controls">
+                    <div class="toggle-wrapper">
+                      <BFormCheckbox
+                        switch
+                        :checked="webhook.isActive"
+                        @change="
+                          webhook._id &&
+                            toggleWebhook(
+                              channel.channelId,
+                              webhook._id,
+                              !webhook.isActive
+                            )
+                        "
+                        class="modern-toggle"
+                      />
+                    </div>
+                    <button
+                      class="action-btn"
+                      @click="startEditWebhook(webhook)"
+                      title="Edit Webhook"
                     >
-                      <i
-                        class="event-badge-icon"
-                        :class="getEventIcon(event)"
-                      ></i>
-                      {{ formatEventName(event) }}
-                    </span>
-                  </div>
-                </div>
-
-                <div class="webhook-controls">
-                  <div class="toggle-wrapper">
-                    <BFormCheckbox
-                      switch
-                      :checked="webhook.isActive"
-                      @change="
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      class="action-btn danger"
+                      @click="
                         webhook._id &&
-                          toggleWebhook(
-                            channel.channelId,
-                            webhook._id,
-                            !webhook.isActive
-                          )
+                          confirmDeleteWebhook(channel.channelId, webhook._id)
                       "
-                      class="modern-toggle"
-                    />
+                      title="Delete Webhook"
+                    >
+                      <i class="bi bi-trash3"></i>
+                    </button>
                   </div>
-                  <button
-                    class="action-btn danger"
-                    @click="
-                      webhook._id &&
-                        confirmDeleteWebhook(channel.channelId, webhook._id)
-                    "
-                    title="Delete Webhook"
-                  >
-                    <i class="bi bi-trash3"></i>
-                  </button>
-                </div>
+                </template>
               </div>
             </div>
           </div>
@@ -353,6 +427,12 @@ const newWebhookForms = ref<Record<string, { url: string; events: string[] }>>(
   {}
 );
 
+// Edit mode: keyed by webhookId, holds the in-progress edit payload.
+// A non-undefined entry means that webhook row is in edit mode.
+const editWebhookForms = ref<
+  Record<string, { url: string; events: string[] }>
+>({});
+
 // Confirmation modal state
 const showConfirmModal = ref(false);
 const confirmModalData = ref({
@@ -363,12 +443,23 @@ const confirmModalData = ref({
 });
 const pendingAction = ref<(() => Promise<void>) | null>(null);
 
-// Available events based on the MongoDB schema
+// Available events — mirrors backend enum (src/models/Webhooks.ts).
+// Grouped for the UI; backend validates against its own enum so adding a new
+// item here without backend support will return 400 INVALID_EVENTS.
 const availableEvents = [
-  { value: "message.received", label: "Message Received" },
-  { value: "message.sent", label: "Message Sent" },
-  { value: "message.delivered", label: "Message Delivered" },
-  { value: "message.read", label: "Message Read" },
+  // Messages
+  { value: "message.received", label: "Message Received", group: "Messages" },
+  { value: "message.sent", label: "Message Sent", group: "Messages" },
+  { value: "message.delivered", label: "Message Delivered", group: "Messages" },
+  { value: "message.read", label: "Message Read", group: "Messages" },
+  // Channel lifecycle
+  { value: "channel.credentials_changed", label: "Credentials Changed", group: "Channel" },
+  { value: "channel.connected", label: "Channel Connected", group: "Channel" },
+  { value: "channel.disconnected", label: "Channel Disconnected", group: "Channel" },
+  { value: "channel.status_update", label: "Status Update", group: "Channel" },
+  { value: "channel.qr_ready", label: "QR Ready", group: "Channel" },
+  { value: "channel.pairing_code_ready", label: "Pairing Code Ready", group: "Channel" },
+  { value: "channel.error", label: "Channel Error", group: "Channel" },
 ];
 
 // Computed properties
@@ -505,6 +596,55 @@ const deleteWebhook = async (channelId: string, webhookId: string) => {
   }
 };
 
+// --- Edit webhook (inline form) ---
+const startEditWebhook = (webhook: ChannelWebhook) => {
+  if (!webhook._id) return;
+  editWebhookForms.value[webhook._id] = {
+    url: webhook.url,
+    events: [...webhook.events],
+  };
+};
+
+const cancelEditWebhook = (webhookId: string) => {
+  delete editWebhookForms.value[webhookId];
+};
+
+const updateEditFormUrl = (webhookId: string, value: string) => {
+  if (editWebhookForms.value[webhookId]) {
+    editWebhookForms.value[webhookId].url = value;
+  }
+};
+
+const updateEditFormEvents = (webhookId: string, value: string[]) => {
+  if (editWebhookForms.value[webhookId]) {
+    editWebhookForms.value[webhookId].events = value;
+  }
+};
+
+const handleSaveEditWebhook = async (
+  channelId: string,
+  webhookId: string
+) => {
+  const formData = editWebhookForms.value[webhookId];
+  if (!formData) return;
+  const cleanedUrl = (formData.url || "").trim();
+  if (!cleanedUrl || formData.events.length === 0) {
+    showErrorToast("URL and at least one event are required.");
+    return;
+  }
+  try {
+    await channelStore.updateChannelWebhook(channelId, webhookId, {
+      url: cleanedUrl,
+      events: formData.events,
+    });
+    success("Webhook updated successfully!");
+    cancelEditWebhook(webhookId);
+  } catch (e) {
+    console.error("Failed to update webhook:", e);
+    showErrorToast("Failed to update webhook. Please try again.");
+  }
+};
+
 const handleConfirmAction = async () => {
   if (pendingAction.value) {
     try {
@@ -560,6 +700,20 @@ const getEventIcon = (event: string) => {
       return "bi bi-check-circle";
     case "message.read":
       return "bi bi-check2-all";
+    case "channel.credentials_changed":
+      return "bi bi-key";
+    case "channel.connected":
+      return "bi bi-plug-fill";
+    case "channel.disconnected":
+      return "bi bi-plug";
+    case "channel.status_update":
+      return "bi bi-arrow-repeat";
+    case "channel.qr_ready":
+      return "bi bi-qr-code";
+    case "channel.pairing_code_ready":
+      return "bi bi-shield-lock";
+    case "channel.error":
+      return "bi bi-exclamation-triangle";
     default:
       return "bi bi-circle";
   }

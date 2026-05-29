@@ -1214,22 +1214,21 @@ onMounted(initialize);
 .modern-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 2rem;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
   border: none;
-  border-radius: 16px;
-  font-weight: 600;
-  font-size: 0.95rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.8125rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
-  line-height: 1;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .modern-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .modern-btn:disabled {
@@ -1436,19 +1435,19 @@ onMounted(initialize);
 }
 
 .webhook-form {
-  padding: 2.5rem;
+  padding: 1rem 1.25rem;
   background: linear-gradient(135deg, #fafbfc 0%, #f8fafc 100%);
 }
 
 .form-header {
-  margin-bottom: 2.5rem;
+  margin-bottom: 1rem;
 }
 
 .form-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: #111827;
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.25rem 0;
   display: flex;
   align-items: center;
 }
@@ -1456,26 +1455,26 @@ onMounted(initialize);
 .form-subtitle {
   color: #6b7280;
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
 .modern-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 0.875rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.375rem;
 }
 
 .form-label {
   font-weight: 600;
   color: #374151;
-  font-size: 0.95rem;
+  font-size: 0.8125rem;
   display: flex;
   align-items: center;
 }
@@ -1486,51 +1485,48 @@ onMounted(initialize);
 
 .input-icon {
   position: absolute;
-  left: 1.25rem;
+  left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   z-index: 2;
 }
 
 .modern-input {
   width: 100%;
-  padding: 1rem 1.25rem 1rem 3.5rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   background: white;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .modern-input:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
 }
 
 .event-option {
   background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 1.25rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .event-option:hover {
-  border-color: #3b82f6;
+  border-color: #6366f1;
   background: #f8fafc;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .event-checkbox {
@@ -1543,31 +1539,37 @@ onMounted(initialize);
 .event-content {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-left: 0.75rem;
+  gap: 0.5rem;
+  margin-left: 0.375rem;
+  min-width: 0;
 }
 
 .event-icon {
-  width: 24px;
-  height: 24px;
+  width: 16px;
+  height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
+  font-size: 0.875rem;
   color: #6b7280;
+  flex-shrink: 0;
 }
 
 .event-label {
-  font-weight: 600;
+  font-weight: 500;
   color: #374151;
-  font-size: 0.95rem;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .form-actions {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.5rem;
   justify-content: flex-end;
-  margin-top: 1.5rem;
+  margin-top: 0.75rem;
 }
 
 .btn-spinner .spinning {

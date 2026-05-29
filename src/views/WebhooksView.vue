@@ -1017,6 +1017,7 @@ const EVENT_VARS: Record<string, string[]> = {
   "channel.disconnected": [
     "channelId", "event", "phoneNumber", "channelName", "reason",
     "statusCode", "message", "willReconnect", "disconnectedAt",
+    "disconnectedAtPe", // Lima local time (es-PE, 24h) — human-friendly
   ],
   "channel.credentials_changed": [
     "channelId", "event", "oldPhoneNumber", "newPhoneNumber", "name", "lid", "changedAt",
@@ -1033,12 +1034,15 @@ const availableVarsHint = (events: string[]) => {
 const templatePlaceholder = (events: string[]) => {
   if (events?.includes("channel.disconnected")) {
     // Default example: format that the api-notifications.legimus.ai /messages endpoint accepts.
+    // Uses {{disconnectedAtPe}} (Lima local time) instead of the raw UTC ISO.
     return JSON.stringify(
       {
         messaging_product: "whatsapp",
         to: "51983724476",
         type: "text",
-        text: { body: "🔴 Canal desconectado: {{channelName}} ({{phoneNumber}}) — {{reason}}" },
+        text: {
+          body: "🔴 Canal {{channelName}} (+{{phoneNumber}}) desconectado: {{reason}} — {{disconnectedAtPe}}",
+        },
       },
       null,
       2,

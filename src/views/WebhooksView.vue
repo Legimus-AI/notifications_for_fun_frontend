@@ -185,6 +185,60 @@
                   </div>
                 </div>
 
+                <!-- Advanced (collapsible) -->
+                <div class="form-group" v-if="newWebhookForms[channel.channelId]">
+                  <button
+                    type="button"
+                    class="advanced-toggle"
+                    @click="toggleAdvanced(newWebhookForms[channel.channelId]!)"
+                  >
+                    <i
+                      class="bi me-2"
+                      :class="newWebhookForms[channel.channelId]!.advancedOpen ? 'bi-chevron-down' : 'bi-chevron-right'"
+                    ></i>
+                    Advanced (method, headers, payload template)
+                  </button>
+                  <BCollapse :model-value="newWebhookForms[channel.channelId]!.advancedOpen">
+                    <div class="advanced-fields">
+                      <div class="form-group">
+                        <label class="form-label">HTTP Method</label>
+                        <select
+                          class="modern-input"
+                          v-model="newWebhookForms[channel.channelId]!.method"
+                        >
+                          <option value="POST">POST</option>
+                          <option value="PUT">PUT</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Custom Headers (JSON)</label>
+                        <textarea
+                          class="modern-input"
+                          rows="3"
+                          placeholder='{"Authorization":"Bearer xxx","X-Custom":"value"}'
+                          v-model="newWebhookForms[channel.channelId]!.headersJson"
+                        ></textarea>
+                        <small class="form-hint">
+                          Leave empty for none. Will be merged with defaults (X-Channel-Id, X-Event).
+                        </small>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Payload Template</label>
+                        <textarea
+                          class="modern-input"
+                          rows="6"
+                          :placeholder='templatePlaceholder(newWebhookForms[channel.channelId]!.events)'
+                          v-model="newWebhookForms[channel.channelId]!.payloadTemplate"
+                        ></textarea>
+                        <small class="form-hint">
+                          Use <code>{{ '{{var}}' }}</code> for substitution. Leave empty to send raw event JSON.
+                          <br>Vars for selected events: <code>{{ availableVarsHint(newWebhookForms[channel.channelId]!.events) }}</code>
+                        </small>
+                      </div>
+                    </div>
+                  </BCollapse>
+                </div>
+
                 <div class="form-actions">
                   <button
                     type="button"
@@ -283,6 +337,61 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- Advanced (collapsible) — edit mode -->
+                    <div class="form-group">
+                      <button
+                        type="button"
+                        class="advanced-toggle"
+                        @click="toggleAdvanced(editWebhookForms[webhook._id]!)"
+                      >
+                        <i
+                          class="bi me-2"
+                          :class="editWebhookForms[webhook._id]!.advancedOpen ? 'bi-chevron-down' : 'bi-chevron-right'"
+                        ></i>
+                        Advanced (method, headers, payload template)
+                      </button>
+                      <BCollapse :model-value="editWebhookForms[webhook._id]!.advancedOpen">
+                        <div class="advanced-fields">
+                          <div class="form-group">
+                            <label class="form-label">HTTP Method</label>
+                            <select
+                              class="modern-input"
+                              v-model="editWebhookForms[webhook._id]!.method"
+                            >
+                              <option value="POST">POST</option>
+                              <option value="PUT">PUT</option>
+                            </select>
+                          </div>
+                          <div class="form-group">
+                            <label class="form-label">Custom Headers (JSON)</label>
+                            <textarea
+                              class="modern-input"
+                              rows="3"
+                              placeholder='{"Authorization":"Bearer xxx"}'
+                              v-model="editWebhookForms[webhook._id]!.headersJson"
+                            ></textarea>
+                            <small class="form-hint">
+                              Leave empty to clear.
+                            </small>
+                          </div>
+                          <div class="form-group">
+                            <label class="form-label">Payload Template</label>
+                            <textarea
+                              class="modern-input"
+                              rows="6"
+                              :placeholder='templatePlaceholder(editWebhookForms[webhook._id]!.events)'
+                              v-model="editWebhookForms[webhook._id]!.payloadTemplate"
+                            ></textarea>
+                            <small class="form-hint">
+                              Use <code>{{ '{{var}}' }}</code> for substitution. Empty = send raw event JSON.
+                              <br>Vars: <code>{{ availableVarsHint(editWebhookForms[webhook._id]!.events) }}</code>
+                            </small>
+                          </div>
+                        </div>
+                      </BCollapse>
+                    </div>
+
                     <div class="form-actions">
                       <button
                         type="button"
@@ -423,15 +532,33 @@ const {
 
 // Component state
 const activeAddForms = ref<Record<string, boolean>>({});
-const newWebhookForms = ref<Record<string, { url: string; events: string[] }>>(
-  {}
-);
+
+type AdvancedFields = {
+  payloadTemplate: string;
+  headersJson: string; // user-edited JSON; parsed on submit
+  method: "POST" | "PUT";
+};
+
+type WebhookFormState = {
+  url: string;
+  events: string[];
+  advancedOpen: boolean;
+} & AdvancedFields;
+
+const emptyForm = (): WebhookFormState => ({
+  url: "",
+  events: ["message.received"],
+  advancedOpen: false,
+  payloadTemplate: "",
+  headersJson: "",
+  method: "POST",
+});
+
+const newWebhookForms = ref<Record<string, WebhookFormState>>({});
 
 // Edit mode: keyed by webhookId, holds the in-progress edit payload.
 // A non-undefined entry means that webhook row is in edit mode.
-const editWebhookForms = ref<
-  Record<string, { url: string; events: string[] }>
->({});
+const editWebhookForms = ref<Record<string, WebhookFormState>>({});
 
 // Confirmation modal state
 const showConfirmModal = ref(false);
@@ -486,42 +613,72 @@ const initialize = async () => {
   }
 };
 
+const ensureAddForm = (channelId: string) => {
+  if (!newWebhookForms.value[channelId]) {
+    newWebhookForms.value[channelId] = emptyForm();
+  }
+  return newWebhookForms.value[channelId];
+};
+
 const showAddWebhookForm = (channelId: string) => {
   activeAddForms.value[channelId] = true;
-  if (!newWebhookForms.value[channelId]) {
-    newWebhookForms.value[channelId] = {
-      url: "",
-      events: ["message.received"],
-    };
-  }
+  ensureAddForm(channelId);
 };
 
 const updateWebhookFormUrl = (channelId: string, value: string) => {
-  if (!newWebhookForms.value[channelId]) {
-    newWebhookForms.value[channelId] = {
-      url: "",
-      events: ["message.received"],
-    };
-  }
-  newWebhookForms.value[channelId].url = value;
+  ensureAddForm(channelId).url = value;
 };
 
 const updateWebhookFormEvents = (channelId: string, value: string[]) => {
-  if (!newWebhookForms.value[channelId]) {
-    newWebhookForms.value[channelId] = {
-      url: "",
-      events: ["message.received"],
-    };
-  }
-  newWebhookForms.value[channelId].events = value;
+  ensureAddForm(channelId).events = value;
+};
+
+const toggleAdvanced = (formState: WebhookFormState) => {
+  formState.advancedOpen = !formState.advancedOpen;
 };
 
 const cancelAddWebhook = (channelId: string) => {
   activeAddForms.value[channelId] = false;
-  newWebhookForms.value[channelId] = {
-    url: "",
-    events: ["message.received"],
-  };
+  newWebhookForms.value[channelId] = emptyForm();
+};
+
+// Parse the user-entered headers JSON. Empty string → no headers.
+// Throws with a friendly error if invalid JSON. We use this on submit only,
+// so the user can type freely while editing.
+const parseHeadersJson = (raw: string): Record<string, string> | undefined => {
+  const trimmed = (raw || "").trim();
+  if (!trimmed) return undefined;
+  let parsed: any;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    throw new Error("Headers must be a valid JSON object — example: {\"Authorization\":\"Bearer xxx\"}");
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Headers must be a JSON object (not array or scalar)");
+  }
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(parsed)) {
+    if (typeof v !== "string") {
+      throw new Error(`Header value for "${k}" must be a string`);
+    }
+    out[k] = v;
+  }
+  return out;
+};
+
+const buildAdvancedPayload = (form: WebhookFormState) => {
+  const advanced: {
+    payloadTemplate?: string;
+    headers?: Record<string, string>;
+    method?: "POST" | "PUT";
+  } = {};
+  const tpl = (form.payloadTemplate || "").trim();
+  if (tpl) advanced.payloadTemplate = tpl;
+  const headers = parseHeadersJson(form.headersJson);
+  if (headers) advanced.headers = headers;
+  if (form.method && form.method !== "POST") advanced.method = form.method;
+  return advanced;
 };
 
 const handleAddWebhook = async (channelId: string) => {
@@ -534,14 +691,22 @@ const handleAddWebhook = async (channelId: string) => {
     return;
   }
 
+  let advanced;
+  try {
+    advanced = buildAdvancedPayload(formData);
+  } catch (e: any) {
+    showErrorToast(e.message);
+    return;
+  }
+
   try {
     await channelStore.addWebhookToChannel(channelId, {
-      url: formData.url,
+      url: formData.url.trim(),
       events: formData.events,
+      ...advanced,
     });
 
     success("Webhook added successfully!");
-    // Reset form and close
     cancelAddWebhook(channelId);
   } catch (e) {
     console.error("Failed to add webhook:", e);
@@ -599,9 +764,17 @@ const deleteWebhook = async (channelId: string, webhookId: string) => {
 // --- Edit webhook (inline form) ---
 const startEditWebhook = (webhook: ChannelWebhook) => {
   if (!webhook._id) return;
+  const hasAdvanced =
+    !!webhook.payloadTemplate ||
+    (!!webhook.headers && Object.keys(webhook.headers).length > 0) ||
+    (!!webhook.method && webhook.method !== "POST");
   editWebhookForms.value[webhook._id] = {
     url: webhook.url,
     events: [...webhook.events],
+    advancedOpen: hasAdvanced, // auto-expand if the webhook already uses advanced fields
+    payloadTemplate: webhook.payloadTemplate || "",
+    headersJson: webhook.headers ? JSON.stringify(webhook.headers, null, 2) : "",
+    method: webhook.method || "POST",
   };
 };
 
@@ -632,10 +805,22 @@ const handleSaveEditWebhook = async (
     showErrorToast("URL and at least one event are required.");
     return;
   }
+  let advanced;
   try {
+    advanced = buildAdvancedPayload(formData);
+  } catch (e: any) {
+    showErrorToast(e.message);
+    return;
+  }
+  try {
+    // Always send the full advanced shape — including empty values — so the
+    // backend can clear fields the user removed.
     await channelStore.updateChannelWebhook(channelId, webhookId, {
       url: cleanedUrl,
       events: formData.events,
+      payloadTemplate: advanced.payloadTemplate ?? "",
+      headers: advanced.headers ?? {},
+      method: advanced.method ?? "POST",
     });
     success("Webhook updated successfully!");
     cancelEditWebhook(webhookId);
@@ -724,6 +909,47 @@ const formatEventName = (event: string) => {
     .split(".")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+// --- Payload template helpers ---
+// Shows users which {{vars}} are available given the currently selected events.
+// Keep in sync with the backend payload shapes emitted in WhatsAppService.ts.
+const EVENT_VARS: Record<string, string[]> = {
+  "message.received": ["channelId", "event", "from", "type", "body", "messageId", "timestamp"],
+  "message.sent": ["channelId", "event", "messageId", "status", "timestamp"],
+  "message.delivered": ["channelId", "event", "messageId", "status", "timestamp"],
+  "message.read": ["channelId", "event", "messageId", "status", "timestamp"],
+  "channel.disconnected": [
+    "channelId", "event", "phoneNumber", "channelName", "reason",
+    "statusCode", "message", "willReconnect", "disconnectedAt",
+  ],
+  "channel.credentials_changed": [
+    "channelId", "event", "oldPhoneNumber", "newPhoneNumber", "name", "lid", "changedAt",
+  ],
+};
+
+const availableVarsHint = (events: string[]) => {
+  if (!events?.length) return "select an event to see variables";
+  const vars = new Set<string>();
+  for (const e of events) (EVENT_VARS[e] || []).forEach((v) => vars.add(v));
+  return Array.from(vars).map((v) => `{{${v}}}`).join("  ");
+};
+
+const templatePlaceholder = (events: string[]) => {
+  if (events?.includes("channel.disconnected")) {
+    // Default example: format that the api-notifications.legimus.ai /messages endpoint accepts.
+    return JSON.stringify(
+      {
+        messaging_product: "whatsapp",
+        to: "51983724476",
+        type: "text",
+        text: { body: "🔴 Canal desconectado: {{channelName}} ({{phoneNumber}}) — {{reason}}" },
+      },
+      null,
+      2,
+    );
+  }
+  return '{\n  "text": "Event {{event}} on channel {{channelId}}"\n}';
 };
 
 onMounted(initialize);
@@ -1460,5 +1686,53 @@ onMounted(initialize);
   .url-text {
     width: 100%;
   }
+}
+
+/* Advanced section in webhook forms */
+.advanced-toggle {
+  background: none;
+  border: 1px dashed #d1d5db;
+  color: #4b5563;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+.advanced-toggle:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  color: #1f2937;
+}
+.advanced-fields {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.advanced-fields textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8125rem;
+}
+.form-hint {
+  display: block;
+  margin-top: 0.25rem;
+  color: #6b7280;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.form-hint code {
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 0.0625rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.6875rem;
 }
 </style>

@@ -495,7 +495,13 @@ export const useChannelStore = defineStore("channels", {
     // Webhook management methods
     async addWebhookToChannel(
       channelId: string,
-      webhookData: { url: string; events: string[] }
+      webhookData: {
+        url: string;
+        events: string[];
+        payloadTemplate?: string;
+        headers?: Record<string, string>;
+        method?: "POST" | "PUT";
+      }
     ) {
       this.isLoading = true;
       this.error = null;
@@ -516,7 +522,14 @@ export const useChannelStore = defineStore("channels", {
     async updateChannelWebhook(
       channelId: string,
       webhookId: string,
-      updates: { url?: string; events?: string[]; isActive?: boolean }
+      updates: {
+        url?: string;
+        events?: string[];
+        isActive?: boolean;
+        payloadTemplate?: string;
+        headers?: Record<string, string>;
+        method?: "POST" | "PUT";
+      }
     ) {
       this.isLoading = true;
       this.error = null;

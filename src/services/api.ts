@@ -137,14 +137,27 @@ export default {
   // Channel Webhook Management
   addWebhookToChannel(
     channelId: string,
-    data: { url: string; events: string[] }
+    data: {
+      url: string;
+      events: string[];
+      payloadTemplate?: string;
+      headers?: Record<string, string>;
+      method?: "POST" | "PUT";
+    }
   ): Promise<ApiResponse<void>> {
     return apiClient.post(`/whatsapp/channels/${channelId}/webhooks`, data);
   },
   updateChannelWebhook(
     channelId: string,
     webhookId: string,
-    data: { url?: string; events?: string[]; isActive?: boolean }
+    data: {
+      url?: string;
+      events?: string[];
+      isActive?: boolean;
+      payloadTemplate?: string;
+      headers?: Record<string, string>;
+      method?: "POST" | "PUT";
+    }
   ): Promise<ApiResponse<void>> {
     return apiClient.put(
       `/whatsapp/channels/${channelId}/webhooks/${webhookId}`,

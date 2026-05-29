@@ -212,24 +212,24 @@
                       </div>
                       <div class="form-group">
                         <label class="form-label">Custom Headers (JSON)</label>
-                        <textarea
-                          class="modern-input"
-                          rows="3"
-                          placeholder='{"Authorization":"Bearer xxx","X-Custom":"value"}'
+                        <JsonEditor
                           v-model="newWebhookForms[channel.channelId]!.headersJson"
-                        ></textarea>
+                          placeholder='{"Authorization":"Bearer xxx","X-Custom":"value"}'
+                          height="120px"
+                          @validity="(v: boolean) => (newWebhookForms[channel.channelId]!.headersValid = v)"
+                        />
                         <small class="form-hint">
                           Leave empty for none. Will be merged with defaults (X-Channel-Id, X-Event).
                         </small>
                       </div>
                       <div class="form-group">
                         <label class="form-label">Payload Template</label>
-                        <textarea
-                          class="modern-input"
-                          rows="6"
-                          :placeholder='templatePlaceholder(newWebhookForms[channel.channelId]!.events)'
+                        <JsonEditor
                           v-model="newWebhookForms[channel.channelId]!.payloadTemplate"
-                        ></textarea>
+                          :placeholder='templatePlaceholder(newWebhookForms[channel.channelId]!.events)'
+                          height="200px"
+                          @validity="(v: boolean) => (newWebhookForms[channel.channelId]!.templateValid = v)"
+                        />
                         <small class="form-hint">
                           Use <code v-pre>{{var}}</code> for substitution. Leave empty to send raw event JSON.
                           <br>Vars for selected events: <code>{{ availableVarsHint(newWebhookForms[channel.channelId]!.events) }}</code>
@@ -365,28 +365,65 @@
                           </div>
                           <div class="form-group">
                             <label class="form-label">Custom Headers (JSON)</label>
-                            <textarea
-                              class="modern-input"
-                              rows="3"
-                              placeholder='{"Authorization":"Bearer xxx"}'
+                            <JsonEditor
                               v-model="editWebhookForms[webhook._id]!.headersJson"
-                            ></textarea>
-                            <small class="form-hint">
-                              Leave empty to clear.
-                            </small>
+                              placeholder='{"Authorization":"Bearer xxx"}'
+                              height="120px"
+                              @validity="(v: boolean) => (editWebhookForms[webhook._id!]!.headersValid = v)"
+                            />
+                            <small class="form-hint">Leave empty to clear.</small>
                           </div>
                           <div class="form-group">
                             <label class="form-label">Payload Template</label>
-                            <textarea
-                              class="modern-input"
-                              rows="6"
-                              :placeholder='templatePlaceholder(editWebhookForms[webhook._id]!.events)'
+                            <JsonEditor
                               v-model="editWebhookForms[webhook._id]!.payloadTemplate"
-                            ></textarea>
+                              :placeholder='templatePlaceholder(editWebhookForms[webhook._id]!.events)'
+                              height="200px"
+                              @validity="(v: boolean) => (editWebhookForms[webhook._id!]!.templateValid = v)"
+                            />
                             <small class="form-hint">
                               Use <code v-pre>{{var}}</code> for substitution. Empty = send raw event JSON.
                               <br>Vars: <code>{{ availableVarsHint(editWebhookForms[webhook._id]!.events) }}</code>
                             </small>
+                          </div>
+                          <!-- Test webhook button — only shown in edit mode (needs persisted webhook id) -->
+                          <div class="form-group">
+                            <button
+                              type="button"
+                              class="modern-btn"
+                              style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;"
+                              :disabled="testWebhookState[webhook._id!]?.loading"
+                              @click="runTestWebhook(channel.channelId, webhook._id!)"
+                            >
+                              <i class="bi bi-send-check me-2"></i>
+                              {{ testWebhookState[webhook._id!]?.loading ? "Sending…" : "Test webhook" }}
+                            </button>
+                            <div
+                              v-if="testWebhookState[webhook._id!]?.result"
+                              class="test-result"
+                              :class="testWebhookState[webhook._id!]!.result!.ok ? 'test-result--ok' : 'test-result--err'"
+                            >
+                              <div class="test-result__head">
+                                <strong>
+                                  {{ testWebhookState[webhook._id!]!.result!.ok ? "✅ Sent" : "❌ Failed" }}
+                                </strong>
+                                <span>
+                                  HTTP {{ testWebhookState[webhook._id!]!.result!.response.statusCode || "—" }}
+                                  · {{ testWebhookState[webhook._id!]!.result!.durationMs }} ms
+                                </span>
+                              </div>
+                              <details>
+                                <summary>Rendered body sent</summary>
+                                <pre>{{ formatJsonForDisplay(testWebhookState[webhook._id!]!.result!.rendered.body) }}</pre>
+                              </details>
+                              <details>
+                                <summary>Downstream response</summary>
+                                <pre>{{ formatJsonForDisplay(testWebhookState[webhook._id!]!.result!.response.body) }}</pre>
+                              </details>
+                              <p v-if="testWebhookState[webhook._id!]!.result!.response.error" class="test-result__err">
+                                {{ testWebhookState[webhook._id!]!.result!.response.error }}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </BCollapse>
@@ -513,6 +550,8 @@ import { useChannelStore } from "@/store/sessions";
 import { storeToRefs } from "pinia";
 import type { ChannelWebhook } from "@/types/sessions";
 import { BCollapse, BFormInput, BFormCheckbox } from "bootstrap-vue-3";
+import JsonEditor from "@/components/common/JsonEditor.vue";
+import api from "@/services/api";
 import { useToast } from "@/composables/useToast";
 import ToastContainer from "@/components/common/ToastContainer.vue";
 import ConfirmationModal from "@/components/common/ConfirmationModal.vue";
@@ -537,6 +576,10 @@ type AdvancedFields = {
   payloadTemplate: string;
   headersJson: string; // user-edited JSON; parsed on submit
   method: "POST" | "PUT";
+  // Live validity flags emitted by JsonEditor — used to disable submit/test
+  // buttons when the JSON inputs don't parse.
+  headersValid: boolean;
+  templateValid: boolean;
 };
 
 type WebhookFormState = {
@@ -552,6 +595,8 @@ const emptyForm = (): WebhookFormState => ({
   payloadTemplate: "",
   headersJson: "",
   method: "POST",
+  headersValid: true,
+  templateValid: true,
 });
 
 const newWebhookForms = ref<Record<string, WebhookFormState>>({});
@@ -559,6 +604,16 @@ const newWebhookForms = ref<Record<string, WebhookFormState>>({});
 // Edit mode: keyed by webhookId, holds the in-progress edit payload.
 // A non-undefined entry means that webhook row is in edit mode.
 const editWebhookForms = ref<Record<string, WebhookFormState>>({});
+
+// Test webhook UI state — keyed by webhookId.
+type TestWebhookResult = {
+  ok: boolean;
+  durationMs: number;
+  rendered: { method: string; url: string; body: any; headers: Record<string, string> };
+  response: { statusCode: number | null; body: any; error: string | null };
+};
+type TestWebhookState = { loading: boolean; result: TestWebhookResult | null };
+const testWebhookState = ref<Record<string, TestWebhookState>>({});
 
 // Confirmation modal state
 const showConfirmModal = ref(false);
@@ -775,8 +830,48 @@ const startEditWebhook = (webhook: ChannelWebhook) => {
     payloadTemplate: webhook.payloadTemplate || "",
     headersJson: webhook.headers ? JSON.stringify(webhook.headers, null, 2) : "",
     method: webhook.method || "POST",
+    headersValid: true,
+    templateValid: true,
   };
 };
+
+// Dispatch a single test event through the backend dry-run endpoint.
+// Stores the diagnostics so the UI can show response + rendered body.
+async function runTestWebhook(channelId: string, webhookId: string) {
+  testWebhookState.value[webhookId] = { loading: true, result: null };
+  try {
+    const testResponse = (await api.testChannelWebhook(
+      channelId,
+      webhookId,
+    )) as TestWebhookResult;
+    testWebhookState.value[webhookId] = {
+      loading: false,
+      result: testResponse,
+    };
+    if (testResponse.ok) {
+      success("Test dispatched — downstream returned 2xx");
+    } else {
+      showErrorToast(
+        `Test dispatched but downstream returned ${testResponse.response.statusCode ?? "error"}`,
+      );
+    }
+  } catch (e: any) {
+    testWebhookState.value[webhookId] = { loading: false, result: null };
+    showErrorToast(e?.response?.data?.errors?.msg || "Test request failed");
+  }
+}
+
+// Pretty-print arbitrary JSON-ish data for the <pre> details block.
+// Strings pass through; objects get 2-space stringify.
+function formatJsonForDisplay(v: any): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  try {
+    return JSON.stringify(v, null, 2);
+  } catch {
+    return String(v);
+  }
+}
 
 const cancelEditWebhook = (webhookId: string) => {
   delete editWebhookForms.value[webhookId];
@@ -1734,5 +1829,53 @@ onMounted(initialize);
   padding: 0.0625rem 0.25rem;
   border-radius: 0.25rem;
   font-size: 0.6875rem;
+}
+
+/* Test webhook result panel */
+.test-result {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  font-size: 0.8125rem;
+}
+.test-result--ok {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+.test-result--err {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #7f1d1d;
+}
+.test-result__head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+.test-result details {
+  margin-top: 0.375rem;
+}
+.test-result summary {
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+.test-result pre {
+  background: rgba(0, 0, 0, 0.04);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.6875rem;
+  margin: 0.375rem 0 0 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow: auto;
+}
+.test-result__err {
+  margin: 0.5rem 0 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 </style>

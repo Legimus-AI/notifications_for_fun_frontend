@@ -172,6 +172,17 @@ export default {
       `/whatsapp/channels/${channelId}/webhooks/${webhookId}`
     );
   },
+  // Dry-run: dispatch a single test event through this webhook and return diagnostics.
+  testChannelWebhook(
+    channelId: string,
+    webhookId: string,
+    body?: { eventType?: string }
+  ): Promise<any> {
+    return apiClient.post(
+      `/whatsapp/channels/${channelId}/webhooks/${webhookId}/test`,
+      body ?? {}
+    );
+  },
 
   // Legacy Webhook Management (for backward compatibility)
   getWebhooks: (): Promise<ApiResponse<Webhook[]>> =>

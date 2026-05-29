@@ -13,6 +13,10 @@
     "preview:production": "vite preview --mode production"
   },
   "dependencies": {
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lint": "^6.9.6",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.43.0",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
@@ -23,11 +27,13 @@
     "bootstrap": "^5.3.7",
     "bootstrap-icons": "^1.13.1",
     "bootstrap-vue-3": "^0.5.1",
+    "codemirror": "^6.0.2",
     "pinia": "^3.0.3",
     "qrcode-generator": "^1.5.0",
     "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0",
     "vue": "^3.5.13",
+    "vue-codemirror": "^6.1.1",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {

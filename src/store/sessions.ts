@@ -501,6 +501,7 @@ export const useChannelStore = defineStore("channels", {
         payloadTemplate?: string;
         headers?: Record<string, string>;
         method?: "POST" | "PUT";
+        timezone?: string;
       }
     ) {
       this.isLoading = true;
@@ -529,6 +530,7 @@ export const useChannelStore = defineStore("channels", {
         payloadTemplate?: string;
         headers?: Record<string, string>;
         method?: "POST" | "PUT";
+        timezone?: string;
       }
     ) {
       this.isLoading = true;

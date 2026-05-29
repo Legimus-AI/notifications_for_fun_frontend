@@ -211,6 +211,19 @@
                         </select>
                       </div>
                       <div class="form-group">
+                        <label class="form-label">Timezone (for {{ '{{xxxAtLocal}}' }} placeholders)</label>
+                        <select
+                          class="modern-input"
+                          v-model="newWebhookForms[channel.channelId]!.timezone"
+                        >
+                          <option v-for="tz in TIMEZONE_OPTIONS" :key="tz" :value="tz">{{ tz }}</option>
+                        </select>
+                        <small class="form-hint">
+                          Every payload timestamp ending in <code v-pre>At</code> gets a sibling
+                          <code v-pre>AtLocal</code> formatted in this timezone (DD/MM/YYYY HH:mm:ss, 24h).
+                        </small>
+                      </div>
+                      <div class="form-group">
                         <label class="form-label">Custom Headers (JSON)</label>
                         <JsonEditor
                           v-model="newWebhookForms[channel.channelId]!.headersJson"
@@ -362,6 +375,19 @@
                               <option value="POST">POST</option>
                               <option value="PUT">PUT</option>
                             </select>
+                          </div>
+                          <div class="form-group">
+                            <label class="form-label">Timezone (for {{ '{{xxxAtLocal}}' }} placeholders)</label>
+                            <select
+                              class="modern-input"
+                              v-model="editWebhookForms[webhook._id]!.timezone"
+                            >
+                              <option v-for="tz in TIMEZONE_OPTIONS" :key="tz" :value="tz">{{ tz }}</option>
+                            </select>
+                            <small class="form-hint">
+                              Every payload timestamp ending in <code v-pre>At</code> gets a sibling
+                              <code v-pre>AtLocal</code> formatted in this timezone (DD/MM/YYYY HH:mm:ss, 24h).
+                            </small>
                           </div>
                           <div class="form-group">
                             <label class="form-label">Custom Headers (JSON)</label>
@@ -576,11 +602,28 @@ type AdvancedFields = {
   payloadTemplate: string;
   headersJson: string; // user-edited JSON; parsed on submit
   method: "POST" | "PUT";
+  timezone: string; // IANA tz; default UTC; backend auto-localizes "*At" keys
   // Live validity flags emitted by JsonEditor — used to disable submit/test
   // buttons when the JSON inputs don't parse.
   headersValid: boolean;
   templateValid: boolean;
 };
+
+// Common IANA timezones — covers the user's regions. Add as needed.
+// Backend accepts any valid IANA name; falls back to UTC if invalid.
+const TIMEZONE_OPTIONS = [
+  "UTC",
+  "America/Lima",
+  "America/Bogota",
+  "America/Santiago",
+  "America/Mexico_City",
+  "America/Buenos_Aires",
+  "America/Sao_Paulo",
+  "America/New_York",
+  "America/Los_Angeles",
+  "Europe/Madrid",
+  "Europe/London",
+];
 
 type WebhookFormState = {
   url: string;
@@ -595,6 +638,7 @@ const emptyForm = (): WebhookFormState => ({
   payloadTemplate: "",
   headersJson: "",
   method: "POST",
+  timezone: "UTC",
   headersValid: true,
   templateValid: true,
 });
@@ -727,12 +771,14 @@ const buildAdvancedPayload = (form: WebhookFormState) => {
     payloadTemplate?: string;
     headers?: Record<string, string>;
     method?: "POST" | "PUT";
+    timezone?: string;
   } = {};
   const tpl = (form.payloadTemplate || "").trim();
   if (tpl) advanced.payloadTemplate = tpl;
   const headers = parseHeadersJson(form.headersJson);
   if (headers) advanced.headers = headers;
   if (form.method && form.method !== "POST") advanced.method = form.method;
+  if (form.timezone && form.timezone !== "UTC") advanced.timezone = form.timezone;
   return advanced;
 };
 
@@ -822,7 +868,8 @@ const startEditWebhook = (webhook: ChannelWebhook) => {
   const hasAdvanced =
     !!webhook.payloadTemplate ||
     (!!webhook.headers && Object.keys(webhook.headers).length > 0) ||
-    (!!webhook.method && webhook.method !== "POST");
+    (!!webhook.method && webhook.method !== "POST") ||
+    (!!webhook.timezone && webhook.timezone !== "UTC");
   editWebhookForms.value[webhook._id] = {
     url: webhook.url,
     events: [...webhook.events],
@@ -830,6 +877,7 @@ const startEditWebhook = (webhook: ChannelWebhook) => {
     payloadTemplate: webhook.payloadTemplate || "",
     headersJson: webhook.headers ? JSON.stringify(webhook.headers, null, 2) : "",
     method: webhook.method || "POST",
+    timezone: webhook.timezone || "UTC",
     headersValid: true,
     templateValid: true,
   };
@@ -916,6 +964,7 @@ const handleSaveEditWebhook = async (
       payloadTemplate: advanced.payloadTemplate ?? "",
       headers: advanced.headers ?? {},
       method: advanced.method ?? "POST",
+      timezone: advanced.timezone ?? "UTC",
     });
     success("Webhook updated successfully!");
     cancelEditWebhook(webhookId);
@@ -1017,10 +1066,12 @@ const EVENT_VARS: Record<string, string[]> = {
   "channel.disconnected": [
     "channelId", "event", "phoneNumber", "channelName", "reason",
     "statusCode", "message", "willReconnect", "disconnectedAt",
-    "disconnectedAtPe", // Lima local time (es-PE, 24h) — human-friendly
+    // Auto-added by dispatcher: same value formatted in webhook.timezone.
+    "disconnectedAtLocal",
   ],
   "channel.credentials_changed": [
     "channelId", "event", "oldPhoneNumber", "newPhoneNumber", "name", "lid", "changedAt",
+    "changedAtLocal", // auto-added by dispatcher (uses webhook.timezone)
   ],
 };
 
@@ -1034,14 +1085,14 @@ const availableVarsHint = (events: string[]) => {
 const templatePlaceholder = (events: string[]) => {
   if (events?.includes("channel.disconnected")) {
     // Default example: format that the api-notifications.legimus.ai /messages endpoint accepts.
-    // Uses {{disconnectedAtPe}} (Lima local time) instead of the raw UTC ISO.
+    // Uses {{disconnectedAtLocal}} — formatted in the timezone selected in this form.
     return JSON.stringify(
       {
         messaging_product: "whatsapp",
         to: "51983724476",
         type: "text",
         text: {
-          body: "🔴 Canal {{channelName}} (+{{phoneNumber}}) desconectado: {{reason}} — {{disconnectedAtPe}}",
+          body: "🔴 Canal {{channelName}} (+{{phoneNumber}}) desconectado: {{reason}} — {{disconnectedAtLocal}}",
         },
       },
       null,

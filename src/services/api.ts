@@ -143,6 +143,7 @@ export default {
       payloadTemplate?: string;
       headers?: Record<string, string>;
       method?: "POST" | "PUT";
+      timezone?: string;
     }
   ): Promise<ApiResponse<void>> {
     return apiClient.post(`/whatsapp/channels/${channelId}/webhooks`, data);
@@ -157,6 +158,7 @@ export default {
       payloadTemplate?: string;
       headers?: Record<string, string>;
       method?: "POST" | "PUT";
+      timezone?: string;
     }
   ): Promise<ApiResponse<void>> {
     return apiClient.put(

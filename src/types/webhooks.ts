@@ -44,6 +44,9 @@ export interface ChannelWebhook {
   payloadTemplate?: string;
   headers?: Record<string, string>;
   method?: WebhookMethod;
+  // IANA timezone (e.g. "America/Lima"). Backend auto-localizes timestamps:
+  // every {{xxxAt}} payload key gets a sibling {{xxxAtLocal}} in this tz.
+  timezone?: string;
 }
 
 export interface CreateWebhookRequest {
@@ -53,6 +56,9 @@ export interface CreateWebhookRequest {
   payloadTemplate?: string;
   headers?: Record<string, string>;
   method?: WebhookMethod;
+  // IANA timezone (e.g. "America/Lima"). Backend auto-localizes timestamps:
+  // every {{xxxAt}} payload key gets a sibling {{xxxAtLocal}} in this tz.
+  timezone?: string;
 }
 
 export interface UpdateWebhookRequest {
@@ -62,6 +68,9 @@ export interface UpdateWebhookRequest {
   payloadTemplate?: string;
   headers?: Record<string, string>;
   method?: WebhookMethod;
+  // IANA timezone (e.g. "America/Lima"). Backend auto-localizes timestamps:
+  // every {{xxxAt}} payload key gets a sibling {{xxxAtLocal}} in this tz.
+  timezone?: string;
 }
 
 // Legacy interfaces for backward compatibility (can be removed later)

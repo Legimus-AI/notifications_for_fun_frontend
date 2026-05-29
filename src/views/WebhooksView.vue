@@ -211,7 +211,7 @@
                         </select>
                       </div>
                       <div class="form-group">
-                        <label class="form-label">Timezone (for {{ '{{xxxAtLocal}}' }} placeholders)</label>
+                        <label class="form-label" v-pre>Timezone (for {{xxxAtLocal}} placeholders)</label>
                         <select
                           class="modern-input"
                           v-model="newWebhookForms[channel.channelId]!.timezone"
@@ -377,7 +377,7 @@
                             </select>
                           </div>
                           <div class="form-group">
-                            <label class="form-label">Timezone (for {{ '{{xxxAtLocal}}' }} placeholders)</label>
+                            <label class="form-label" v-pre>Timezone (for {{xxxAtLocal}} placeholders)</label>
                             <select
                               class="modern-input"
                               v-model="editWebhookForms[webhook._id]!.timezone"

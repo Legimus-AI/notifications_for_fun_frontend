@@ -231,7 +231,7 @@
                           v-model="newWebhookForms[channel.channelId]!.payloadTemplate"
                         ></textarea>
                         <small class="form-hint">
-                          Use <code>{{ '{{var}}' }}</code> for substitution. Leave empty to send raw event JSON.
+                          Use <code v-pre>{{var}}</code> for substitution. Leave empty to send raw event JSON.
                           <br>Vars for selected events: <code>{{ availableVarsHint(newWebhookForms[channel.channelId]!.events) }}</code>
                         </small>
                       </div>
@@ -384,7 +384,7 @@
                               v-model="editWebhookForms[webhook._id]!.payloadTemplate"
                             ></textarea>
                             <small class="form-hint">
-                              Use <code>{{ '{{var}}' }}</code> for substitution. Empty = send raw event JSON.
+                              Use <code v-pre>{{var}}</code> for substitution. Empty = send raw event JSON.
                               <br>Vars: <code>{{ availableVarsHint(editWebhookForms[webhook._id]!.events) }}</code>
                             </small>
                           </div>

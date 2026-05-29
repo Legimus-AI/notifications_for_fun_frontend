@@ -12,18 +12,13 @@ export type ChannelStatus =
   | "error"
   | "logged_out";
 
-// Channel webhook interface based on MongoDB schema
-export interface ChannelWebhook {
-  _id?: string;
-  url: string;
-  events: (
-    | "message.received"
-    | "message.sent"
-    | "message.delivered"
-    | "message.read"
-  )[];
-  isActive: boolean;
-}
+// Channel webhook interface — kept aligned with src/types/webhooks.ts.
+// The standalone types/webhooks.ts is the source of truth for the event union
+// and advanced fields. Imported here for use in WhatsAppChannel below, and
+// re-exported so existing components that import from `@/types/sessions` keep
+// working without changes.
+import type { ChannelWebhook, WebhookEvent, WebhookMethod } from "./webhooks";
+export type { ChannelWebhook, WebhookEvent, WebhookMethod };
 
 export interface WhatsAppChannelConfig {
   phoneNumber?: string;

@@ -164,6 +164,20 @@
                 </div>
               </div>
 
+              <!-- Number-match warning (only when channel already has a number) -->
+              <div
+                v-if="
+                  currentPhoneNumber &&
+                  qrCodeModal.qrCode &&
+                  !qrCodeModal.isConnecting
+                "
+                class="number-warning-card"
+              >
+                ⚠️ Este canal está vinculado a
+                <strong>+{{ currentPhoneNumber }}</strong>. Escanea con ese mismo
+                número; si usas otro, reemplazarás la sesión actual del canal.
+              </div>
+
               <!-- Instructions -->
               <div
                 v-if="qrCodeModal.qrCode && !qrCodeModal.isConnecting"
@@ -370,6 +384,20 @@
                 </div>
               </div>
 
+              <!-- Number-match warning (only when channel already has a number) -->
+              <div
+                v-if="
+                  currentPhoneNumber &&
+                  pairingCodeModal.code &&
+                  !pairingCodeModal.isConnecting
+                "
+                class="number-warning-card"
+              >
+                ⚠️ Este canal está vinculado a
+                <strong>+{{ currentPhoneNumber }}</strong>. Vincula con ese mismo
+                número; si usas otro, reemplazarás la sesión actual del canal.
+              </div>
+
               <!-- Instructions -->
               <div
                 v-if="pairingCodeModal.code && !pairingCodeModal.isConnecting"
@@ -413,8 +441,19 @@ import { useChannelStore } from "@/store/sessions";
 import { useToast } from "@/composables/useToast";
 
 const channelStore = useChannelStore();
-const { qrCodeModal, pairingCodeModal } = storeToRefs(channelStore);
+const { qrCodeModal, pairingCodeModal, channels } = storeToRefs(channelStore);
 const { success, error } = useToast();
+
+// Number the channel being (re)paired is currently linked to. When set, the user
+// must scan with the SAME number — re-pairing a different phone replaces the
+// session. Resolved from the store's channel list (no extra API/store changes).
+const currentPhoneNumber = computed(() => {
+  const channelId =
+    qrCodeModal.value.channelId || pairingCodeModal.value.channelId;
+  if (!channelId) return undefined;
+  const channel = channels.value.find((item) => item.channelId === channelId);
+  return channel?.config?.phoneNumber || channel?.phoneNumber;
+});
 
 const headerStatusClass = computed(() => {
   if (qrCodeModal.value.showSuccess) return "status-success";
@@ -868,6 +907,23 @@ const copyPairingCode = async () => {
   color: #6b7280;
   font-weight: 500;
   margin: 0;
+}
+
+/* Number-match warning */
+.number-warning-card {
+  background: linear-gradient(135deg, #fff8e1, #fff3cd);
+  border: 1px solid #ffe082;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  color: #7a5b00;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.number-warning-card strong {
+  color: #5c4400;
 }
 
 /* Instructions */

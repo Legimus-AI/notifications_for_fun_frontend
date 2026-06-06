@@ -22,7 +22,20 @@ export type { ChannelWebhook, WebhookEvent, WebhookMethod };
 
 export interface WhatsAppChannelConfig {
   phoneNumber?: string;
-  connectedAt?: string;
+  connectedAt?: string; // "Reconectado el" — last successful connection
+  disconnectedSince?: string | null; // "Con problemas desde" — sealed on first drop
+}
+
+// One row of the connection audit trail (GET /whatsapp/channels/:id/events).
+export interface ChannelConnectionEvent {
+  _id: string;
+  channelId: string;
+  event: "open" | "close" | "reconnect" | "conflict" | "logged_out";
+  statusCode?: number;
+  reason?: string;
+  message?: string;
+  attempt?: number;
+  createdAt: string;
 }
 
 export interface WhatsAppChannel {

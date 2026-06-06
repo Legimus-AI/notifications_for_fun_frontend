@@ -102,8 +102,25 @@
         </span>
       </div>
 
-      <!-- Connection Time -->
-      <div v-if="connectedAt" class="detail-item">
+      <!-- Reconectado el (último open exitoso) -->
+      <div v-if="connectedAt" class="detail-item detail-item--ok">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          class="detail-icon"
+        >
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+        </svg>
+        <span>Reconectado el {{ formatDate(connectedAt) }}</span>
+      </div>
+
+      <!-- Con problemas desde (timestamp sellado de la caída) -->
+      <div
+        v-if="disconnectedSince && statusType !== 'active'"
+        class="detail-item detail-item--problem"
+      >
         <svg
           width="16"
           height="16"
@@ -112,14 +129,17 @@
           class="detail-icon"
         >
           <path
-            d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"
+            d="M13,13H11V7H13M13,17H11V15H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
           />
         </svg>
-        <span>Connected {{ formatConnectedTime }}</span>
+        <span>Con problemas desde {{ formatDate(disconnectedSince) }}</span>
       </div>
 
       <!-- Last Activity (fallback if no connection time) -->
-      <div v-else-if="formatLastActivity" class="detail-item">
+      <div
+        v-if="formatLastActivity && !connectedAt && !disconnectedSince"
+        class="detail-item"
+      >
         <svg
           width="16"
           height="16"
@@ -132,6 +152,26 @@
           />
         </svg>
         <span>{{ formatLastActivity }}</span>
+      </div>
+
+      <!-- Historial de conexión (timeline, lazy) -->
+      <button type="button" class="timeline-toggle" @click="toggleTimeline">
+        {{ showTimeline ? "▾" : "▸" }} Historial de conexión
+      </button>
+      <div v-if="showTimeline" class="channel-timeline">
+        <span v-if="timelineLoading" class="timeline-empty">Cargando…</span>
+        <span v-else-if="!timelineEvents.length" class="timeline-empty"
+          >Sin eventos registrados</span
+        >
+        <div
+          v-for="ev in timelineEvents"
+          :key="ev._id"
+          class="timeline-row"
+          :class="`timeline-row--${ev.event}`"
+        >
+          <span class="timeline-label">{{ eventLabel(ev) }}</span>
+          <span class="timeline-time">{{ formatDate(ev.createdAt) }}</span>
+        </div>
       </div>
 
       <!-- Webhooks Count (if any) -->
@@ -296,8 +336,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
-import type { WhatsAppChannel } from "../../types/sessions";
+import type {
+  WhatsAppChannel,
+  ChannelConnectionEvent,
+} from "../../types/sessions";
 import { useChannelStore } from "@/store/sessions";
+import api from "@/services/api";
 import ConfirmationModal from "@/components/common/ConfirmationModal.vue";
 import { useToast } from "@/composables/useToast";
 
@@ -310,6 +354,48 @@ const { success, error } = useToast();
 const menuOpen = ref(false);
 const showDeleteModal = ref(false);
 const isTogglingActive = ref(false);
+
+// Connection-event timeline (lazy-loaded on expand)
+const showTimeline = ref(false);
+const timelineEvents = ref<ChannelConnectionEvent[]>([]);
+const timelineLoading = ref(false);
+
+// "Con problemas desde" — sealed timestamp from when the channel last dropped.
+const disconnectedSince = computed(
+  () => props.channel.config?.disconnectedSince,
+);
+const formatDate = (iso?: string | null): string =>
+  iso ? new Date(iso).toLocaleString("es-PE", {
+    day: "2-digit", month: "2-digit", year: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+  }) : "";
+
+const toggleTimeline = async () => {
+  showTimeline.value = !showTimeline.value;
+  if (showTimeline.value && !timelineEvents.value.length) {
+    timelineLoading.value = true;
+    try {
+      const res = await api.getChannelEvents(props.channel.channelId, 50);
+      timelineEvents.value = res.payload ?? [];
+    } catch (e) {
+      error("No se pudo cargar el historial de conexión");
+    } finally {
+      timelineLoading.value = false;
+    }
+  }
+};
+
+const eventLabel = (e: ChannelConnectionEvent): string => {
+  const map: Record<string, string> = {
+    open: "Conectado",
+    close: "Desconexión",
+    reconnect: "Reintento",
+    conflict: "Conflicto",
+    logged_out: "Sesión cerrada",
+  };
+  const base = map[e.event] ?? e.event;
+  return e.statusCode ? `${base} (${e.statusCode})` : base;
+};
 
 const statusType = computed(() => {
   switch (props.channel.status) {
@@ -378,16 +464,6 @@ const shouldShowRefreshQr = computed(() => {
     props.channel.status === "logged_out" ||
     props.channel.connectionError ||
     (props.channel.status === "inactive" && connectedPhoneNumber.value)
-  );
-});
-
-// Format connected time
-const formatConnectedTime = computed(() => {
-  if (!connectedAt.value) return "";
-  const date = new Date(connectedAt.value);
-  return new Intl.RelativeTimeFormat("en", { numeric: "auto" }).format(
-    Math.round((date.getTime() - Date.now()) / (1000 * 60)),
-    "minute"
   );
 });
 
@@ -989,5 +1065,60 @@ onUnmounted(() => {
     width: 90vw;
     max-width: 280px;
   }
+}
+
+/* Reconectado el / Con problemas desde */
+.detail-item--ok {
+  color: #16a34a;
+}
+.detail-item--problem {
+  color: #dc2626;
+}
+
+/* Connection-event timeline */
+.timeline-toggle {
+  background: none;
+  border: none;
+  padding: 4px 0;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  text-align: left;
+}
+.timeline-toggle:hover {
+  color: #374151;
+}
+.channel-timeline {
+  margin-top: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  border-left: 2px solid #e5e7eb;
+  padding-left: 8px;
+}
+.timeline-empty {
+  font-size: 12px;
+  color: #9ca3af;
+}
+.timeline-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  padding: 2px 0;
+}
+.timeline-label {
+  font-weight: 500;
+  color: #374151;
+}
+.timeline-row--open .timeline-label {
+  color: #16a34a;
+}
+.timeline-row--logged_out .timeline-label,
+.timeline-row--conflict .timeline-label {
+  color: #dc2626;
+}
+.timeline-time {
+  color: #9ca3af;
+  white-space: nowrap;
 }
 </style>

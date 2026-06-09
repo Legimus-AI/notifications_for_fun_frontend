@@ -22,7 +22,7 @@ import type {
   SendMessageRequest,
   SendMediaRequest,
   PairingCodeRequest,
-  ChannelConnectionEvent,
+  ChannelEventsResponse,
 } from "@/types/sessions";
 import type {
   ContactCheckResponse,
@@ -83,7 +83,7 @@ export default {
   getChannelEvents(
     channelId: string,
     limit = 50,
-  ): Promise<ApiResponse<ChannelConnectionEvent[]>> {
+  ): Promise<ChannelEventsResponse> {
     return apiClient.get(`/whatsapp/channels/${channelId}/events`, {
       params: { limit },
     });

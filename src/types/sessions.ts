@@ -38,6 +38,14 @@ export interface ChannelConnectionEvent {
   createdAt: string;
 }
 
+// Events endpoint response: the trail + the last successful connection
+// (surfaced separately so the noise in `payload` doesn't bury it).
+export interface ChannelEventsResponse {
+  ok: boolean;
+  payload?: ChannelConnectionEvent[];
+  lastConnectedAt?: string | null;
+}
+
 export interface WhatsAppChannel {
   id: string;
   channelId: string;

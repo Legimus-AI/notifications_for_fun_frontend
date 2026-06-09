@@ -160,18 +160,27 @@
       </button>
       <div v-if="showTimeline" class="channel-timeline">
         <span v-if="timelineLoading" class="timeline-empty">Cargando…</span>
-        <span v-else-if="!timelineEvents.length" class="timeline-empty"
-          >Sin eventos registrados</span
-        >
-        <div
-          v-for="ev in timelineEvents"
-          :key="ev._id"
-          class="timeline-row"
-          :class="`timeline-row--${ev.event}`"
-        >
-          <span class="timeline-label">{{ eventLabel(ev) }}</span>
-          <span class="timeline-time">{{ formatDate(ev.createdAt) }}</span>
-        </div>
+        <template v-else>
+          <!-- Última conexión exitosa: siempre a la mano, encima del ruido -->
+          <div class="timeline-lastok">
+            <span>✅ Última conexión exitosa:</span>
+            <span class="timeline-lastok-date">{{
+              lastConnectedAt ? formatDate(lastConnectedAt) : "sin registro"
+            }}</span>
+          </div>
+          <span v-if="!timelineEvents.length" class="timeline-empty"
+            >Sin eventos registrados</span
+          >
+          <div
+            v-for="ev in timelineEvents"
+            :key="ev._id"
+            class="timeline-row"
+            :class="`timeline-row--${ev.event}`"
+          >
+            <span class="timeline-label">{{ eventLabel(ev) }}</span>
+            <span class="timeline-time">{{ formatDate(ev.createdAt) }}</span>
+          </div>
+        </template>
       </div>
 
       <!-- Webhooks Count (if any) -->
@@ -359,6 +368,9 @@ const isTogglingActive = ref(false);
 const showTimeline = ref(false);
 const timelineEvents = ref<ChannelConnectionEvent[]>([]);
 const timelineLoading = ref(false);
+// Last SUCCESSFUL connection (last `open` event) — surfaced above the noisy
+// reconnect/conflict trail so it's always at hand.
+const lastConnectedAt = ref<string | null>(null);
 
 // "Con problemas desde" — sealed timestamp from when the channel last dropped.
 const disconnectedSince = computed(
@@ -377,6 +389,7 @@ const toggleTimeline = async () => {
     try {
       const res = await api.getChannelEvents(props.channel.channelId, 50);
       timelineEvents.value = res.payload ?? [];
+      lastConnectedAt.value = res.lastConnectedAt ?? null;
     } catch (e) {
       error("No se pudo cargar el historial de conexión");
     } finally {
@@ -1094,6 +1107,23 @@ onUnmounted(() => {
   overflow-y: auto;
   border-left: 2px solid #e5e7eb;
   padding-left: 8px;
+}
+.timeline-lastok {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #16a34a;
+  background: #f0fdf4;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin-bottom: 6px;
+  position: sticky;
+  top: 0;
+}
+.timeline-lastok-date {
+  white-space: nowrap;
 }
 .timeline-empty {
   font-size: 12px;
